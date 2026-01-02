@@ -1,241 +1,1072 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Veloxity — AI Application Compiler</title>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #ffffff; color: #0f172a; scroll-behavior: smooth; }
-        .hero-gradient { background: radial-gradient(circle at top left, #f8fafc 0%, #ffffff 100%); }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Veloxity — AI Application Compiler</title>
+  <meta name="description" content="Describe the app you need. Veloxity builds it — data model, UI, workflows, permissions, and APIs — deployed in minutes." />
+  <style>
+    :root{
+      --bg:#0b0d12;
+      --panel:rgba(255,255,255,.04);
+      --panel2:rgba(255,255,255,.06);
+      --border:rgba(255,255,255,.10);
+      --border2:rgba(255,255,255,.16);
+      --text:#f4f6fb;
+      --muted:rgba(244,246,251,.72);
+      --muted2:rgba(244,246,251,.55);
+      --accent:#8b5cf6; /* violet */
+      --accent2:#22c55e; /* green */
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+      --shadow2:0 10px 40px rgba(0,0,0,.45);
+      --radius:26px;
+      --radius2:18px;
+      --max:1160px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(1200px 600px at 10% 0%, rgba(139,92,246,.18), transparent 60%),
+                  radial-gradient(900px 500px at 95% 15%, rgba(34,197,94,.12), transparent 60%),
+                  radial-gradient(1100px 700px at 50% 90%, rgba(59,130,246,.10), transparent 65%),
+                  var(--bg);
+      color:var(--text);
+      overflow-x:hidden;
+    }
+    a{color:inherit; text-decoration:none}
+    .container{max-width:var(--max); margin:0 auto; padding:0 24px;}
+    .sticky{
+      position:sticky; top:0; z-index:50;
+      backdrop-filter: blur(10px);
+      background: rgba(11,13,18,.72);
+      border-bottom:1px solid var(--border);
+    }
+    .nav{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 0;
+    }
+    .brand{display:flex; gap:12px; align-items:center;}
+    .logo{
+      width:38px; height:38px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      display:grid; place-items:center;
+      box-shadow: 0 6px 18px rgba(0,0,0,.28);
+    }
+    .brand-title{line-height:1.05}
+    .brand-title .name{font-weight:700; font-size:14px}
+    .brand-title .tag{font-size:12px; color:var(--muted2); margin-top:2px}
+    .navlinks{display:none; gap:22px; align-items:center;}
+    .navlinks a{font-size:14px; color:var(--muted2)}
+    .navlinks a:hover{color:var(--text)}
+    .navcta{display:flex; gap:10px; align-items:center;}
+    .btn{
+      border:1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+      color:var(--text);
+      padding:10px 14px;
+      border-radius:14px;
+      font-weight:600;
+      font-size:14px;
+      cursor:pointer;
+      transition: transform .08s ease, border-color .2s ease, background .2s ease;
+      display:inline-flex; align-items:center; gap:8px;
+    }
+    .btn:hover{border-color:var(--border2)}
+    .btn:active{transform: translateY(1px)}
+    .btn.primary{
+      border-color: rgba(139,92,246,.45);
+      background: linear-gradient(180deg, rgba(139,92,246,.35), rgba(139,92,246,.18));
+      box-shadow: 0 10px 30px rgba(139,92,246,.18);
+    }
+    .btn.ghost{
+      border-color: transparent;
+      background: transparent;
+      color: var(--muted);
+    }
+    .btn.ghost:hover{background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.08)}
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.03);
+      color:var(--muted);
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:600;
+      letter-spacing:.2px;
+      white-space:nowrap;
+    }
+    .badge.solid{
+      border-color: rgba(139,92,246,.45);
+      background: rgba(139,92,246,.18);
+      color: rgba(244,246,251,.92);
+    }
+    .badge.outline{
+      background: transparent;
+      color: var(--muted);
+    }
+
+    /* Sections */
+    .hero{padding:52px 0 28px; position:relative;}
+    .grid2{display:grid; grid-template-columns:1fr; gap:26px;}
+    .h1{font-size:42px; line-height:1.05; letter-spacing:-.02em; margin:14px 0 0; font-weight:750;}
+    .sub{max-width:560px; color:var(--muted); margin:14px 0 0; font-size:16px; line-height:1.55;}
+    .cta-row{display:flex; gap:10px; margin-top:22px; flex-wrap:wrap;}
+    .feature-grid{display:grid; grid-template-columns:1fr; gap:10px; margin-top:22px;}
+    .pill-row{display:flex; gap:14px; flex-wrap:wrap; margin-top:16px; color:var(--muted2); font-size:12px;}
+    .pill{display:flex; gap:8px; align-items:center}
+    .mini-grid{display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; margin-top:24px;}
+    .mini-card{
+      border:1px solid var(--border);
+      background: var(--panel);
+      border-radius:18px;
+      padding:14px;
+      text-align:center;
+    }
+    .mini-card .t{font-size:14px; font-weight:650}
+    .mini-card .d{font-size:12px; color:var(--muted2); margin-top:6px}
+
+    .card{
+      border:1px solid var(--border);
+      background: var(--panel);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .card .head{
+      padding:18px 18px 10px;
+      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+    }
+    .card .title{font-weight:700; font-size:14px}
+    .card .meta{margin-top:6px; font-size:13px; color:var(--muted2)}
+    .card .body{padding:0 18px 18px}
+    .chatbox{
+      height:340px;
+      overflow:auto;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.20);
+      border-radius: 18px;
+      padding:14px;
+    }
+    .bubble{
+      max-width:92%;
+      border-radius: 16px;
+      padding:9px 11px;
+      font-size:13px;
+      line-height:1.45;
+      margin:0 0 10px 0;
+      opacity:0;
+      transform: translateY(6px);
+      animation: in .18s ease forwards;
+    }
+    @keyframes in {to{opacity:1; transform: translateY(0)}}
+    .bubble.assistant{background: rgba(255,255,255,.08); color: var(--text);}
+    .bubble.user{
+      margin-left:auto;
+      background: rgba(244,246,251,.92);
+      color: rgba(10,12,16,.96);
+    }
+    .input-row{display:flex; gap:10px; margin-top:10px;}
+    .input{
+      flex:1;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      border-radius: 16px;
+      padding:12px 12px;
+      font-size:14px;
+      outline:none;
+    }
+    .input:focus{border-color: rgba(139,92,246,.55); box-shadow: 0 0 0 4px rgba(139,92,246,.14)}
+    .chat-actions{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px;}
+    .rightnote{margin-left:auto; display:none; gap:8px; align-items:center; font-size:12px; color:var(--muted2)}
+    .section{padding:58px 0;}
+    .eyebrow{margin-bottom:10px}
+    .h2{font-size:30px; margin:0; letter-spacing:-.01em}
+    .subtitle{color:var(--muted); margin:10px 0 0; max-width:760px; line-height:1.6}
+    .grid4{display:grid; grid-template-columns:1fr; gap:12px;}
+    .grid3{display:grid; grid-template-columns:1fr; gap:12px;}
+    .grid2cards{display:grid; grid-template-columns:1fr; gap:12px;}
+    .icard{
+      border:1px solid var(--border);
+      background: var(--panel);
+      border-radius: 26px;
+      padding:18px;
+      display:flex; gap:14px;
+      align-items:flex-start;
+    }
+    .icon{
+      width:44px; height:44px;
+      border-radius: 18px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      display:grid; place-items:center;
+      flex:0 0 auto;
+      box-shadow: 0 8px 18px rgba(0,0,0,.25);
+    }
+    .icard .it{font-weight:700; margin-top:2px}
+    .icard .id{color:var(--muted2); margin-top:6px; font-size:14px; line-height:1.55}
+
+    .step{
+      border:1px solid var(--border);
+      background: var(--panel);
+      border-radius: 26px;
+      padding:18px;
+    }
+    .step .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.03);
+      padding:6px 10px;
+      font-size:12px;
+      color:var(--muted2);
+    }
+    .step .chip b{color:var(--text)}
+    .step .st{font-size:18px; font-weight:750; margin-top:10px}
+    .step .sd{color:var(--muted2); margin-top:8px; line-height:1.55; font-size:14px}
+
+    .callout{
+      border:1px solid var(--border);
+      background: var(--panel2);
+      border-radius: 28px;
+      padding:18px;
+      display:flex; gap:14px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      margin-top:14px;
+    }
+
+    /* Pricing */
+    .tier{
+      border:1px solid var(--border);
+      background: var(--panel);
+      border-radius: 26px;
+      padding:18px;
+    }
+    .tier.pop{
+      border-color: rgba(139,92,246,.55);
+      box-shadow: 0 18px 40px rgba(139,92,246,.12);
+    }
+    .tier .tn{font-weight:750; font-size:14px}
+    .tier .tp{font-weight:800; font-size:24px; margin-top:10px}
+    .tier .tt{color:var(--muted2); font-size:13px; margin-top:8px; line-height:1.5}
+    .tier ul{margin:14px 0 0; padding:0; list-style:none; display:grid; gap:10px;}
+    .tier li{display:flex; gap:10px; align-items:flex-start; color:var(--text); font-size:14px;}
+    .tier .small{color:var(--muted2); font-size:12px; margin-top:10px}
+    .wfull{width:100%}
+
+    /* Final CTA */
+    .cta-box{
+      border:1px solid var(--border);
+      background: var(--panel2);
+      border-radius: 32px;
+      padding:22px;
+      display:grid;
+      gap:16px;
+    }
+    .cta-box h3{margin:0; font-size:26px; letter-spacing:-.01em}
+    .cta-box p{margin:10px 0 0; color:var(--muted); line-height:1.55}
+    .cta-bullets{display:grid; grid-template-columns:1fr; gap:10px;}
+    .bullet{
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.20);
+      border-radius: 18px;
+      padding:12px;
+      display:flex; gap:10px; align-items:center;
+      font-weight:650;
+      font-size:14px;
+    }
+
+    /* Footer */
+    footer{border-top:1px solid var(--border); padding:34px 0 18px;}
+    .footgrid{display:grid; grid-template-columns:1fr; gap:14px;}
+    .footlinks{display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:14px;}
+    .footlinks a{color:var(--muted2)}
+    .footlinks a:hover{color:var(--text)}
+    .footbox{
+      border:1px solid var(--border);
+      background: var(--panel2);
+      border-radius: 22px;
+      padding:14px;
+    }
+    .tinyrow{display:flex; flex-direction:column; gap:10px; margin-top:18px; color:var(--muted2); font-size:12px}
+    .tinyrow a{color:var(--muted2)}
+    .tinyrow a:hover{color:var(--text)}
+
+    /* Responsive */
+    @media (min-width: 860px){
+      .navlinks{display:flex;}
+      .grid2{grid-template-columns:1.05fr .95fr; gap:28px; align-items:start;}
+      .feature-grid{grid-template-columns:1fr 1fr;}
+      .grid4{grid-template-columns:1fr 1fr;}
+      .grid3{grid-template-columns:1fr 1fr 1fr;}
+      .grid2cards{grid-template-columns:1fr 1fr;}
+      .rightnote{display:flex;}
+      .footgrid{grid-template-columns:1.2fr 1fr 1fr; gap:18px; align-items:start;}
+      .cta-box{grid-template-columns:1.2fr 1fr; align-items:center; padding:28px;}
+      .cta-bullets{grid-template-columns:1fr 1fr;}
+      .mini-grid{grid-template-columns:repeat(4, 1fr);}
+    }
+    @media (max-width: 420px){
+      .h1{font-size:36px}
+    }
+
+    /* Smooth anchor scroll */
+    html{scroll-behavior:smooth;}
+  </style>
 </head>
+
 <body>
-    <div id="root"></div>
+  <!-- NAV -->
+  <div class="sticky">
+    <div class="container">
+      <div class="nav">
+        <div class="brand">
+          <div class="logo" aria-hidden="true">
+            <!-- Sparkles-ish icon -->
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2l1.2 4.2L17.5 7.5l-4.3 1.3L12 13l-1.2-4.2L6.5 7.5l4.3-1.3L12 2Z" stroke="rgba(244,246,251,.9)" stroke-width="1.6" stroke-linejoin="round"/>
+              <path d="M20 11l.7 2.3L23 14l-2.3.7L20 17l-.7-2.3L17 14l2.3-.7L20 11Z" stroke="rgba(244,246,251,.75)" stroke-width="1.6" stroke-linejoin="round"/>
+              <path d="M5 14l.7 2.3L8 17l-2.3.7L5 20l-.7-2.3L2 17l2.3-.7L5 14Z" stroke="rgba(244,246,251,.75)" stroke-width="1.6" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="brand-title">
+            <div class="name">Veloxity</div>
+            <div class="tag">AI application compiler</div>
+          </div>
+        </div>
 
-    <script type="text/babel">
-        // This line fixes the ReferenceError by grabbing the library from the window object
-        const { motion, AnimatePresence } = window.FramerMotion;
-        const { useState, useEffect, useRef, useMemo } = React;
+        <div class="navlinks" role="navigation" aria-label="Primary">
+          <a href="#how">How it works</a>
+          <a href="#use-cases">Use cases</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#security">Security</a>
+        </div>
 
-        // --- UI Component Shims ---
-        const cn = (...classes) => classes.filter(Boolean).join(" ");
-        
-        const Icon = ({ name, className = "h-5 w-5" }) => {
-            useEffect(() => { lucide.createIcons(); }, []);
-            return <i data-lucide={name} className={className}></i>;
-        };
+        <div class="navcta">
+          <button class="btn ghost" type="button">Talk to an expert</button>
+          <button class="btn primary" type="button">
+            Start building
+            <span aria-hidden="true">→</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        const Button = ({ children, variant = "default", className = "", ...props }) => {
-            const base = "inline-flex items-center justify-center rounded-xl text-sm font-semibold transition-all active:scale-95 px-5 py-2.5";
-            const styles = {
-                default: "bg-slate-900 text-white hover:bg-slate-800 shadow-sm",
-                outline: "border border-slate-200 bg-white hover:bg-slate-50 text-slate-700",
-                ghost: "hover:bg-slate-100 text-slate-600"
-            };
-            return <button className={cn(base, styles[variant], className)} {...props}>{children}</button>;
-        };
+  <!-- HERO -->
+  <header class="hero">
+    <div class="container">
+      <div class="grid2">
+        <!-- Left -->
+        <div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <span class="badge solid">Platform-as-a-Compiler</span>
+            <span class="badge outline">AI-first app building</span>
+          </div>
 
-        const Card = ({ children, className = "" }) => <div className={cn("bg-white border border-slate-100 rounded-[2rem] shadow-sm", className)}>{children}</div>;
-        
-        const Badge = ({ children, variant = "secondary", className = "" }) => (
-            <span className={cn("px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider", 
-                variant === "outline" ? "border border-slate-200 text-slate-500" : "bg-slate-100 text-slate-600", className)}>{children}</span>
-        );
+          <h1 class="h1">Describe the app you need. Veloxity builds it.</h1>
+          <p class="sub">
+            Veloxity turns plain English into secure, scalable business applications — data model, UI, workflows,
+            permissions, and APIs — deployed in minutes.
+          </p>
 
-        // --- Data ---
-        const demoPrompts = [
-            "I need an internal tool to track vendor onboarding and approvals.",
-            "Build an operations dashboard with workflows and role-based access.",
-            "Create a lightweight CRM for my sales ops team with stages and tasks.",
-            "We need an app for equipment check-out and maintenance reminders."
-        ];
+          <div class="cta-row">
+            <button class="btn primary" type="button">
+              Start building <span aria-hidden="true">→</span>
+            </button>
+            <button class="btn" type="button">Talk to an expert (15 min)</button>
+          </div>
 
-        // --- Components ---
-        const Nav = () => (
-            <nav className="sticky top-0 z-50 w-full border-b bg-white/70 backdrop-blur-md px-8 py-4">
-                <div className="mx-auto flex max-w-7xl items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl border shadow-sm font-bold text-slate-900">V</div>
-                        <div>
-                            <div className="text-sm font-bold tracking-tight">Veloxity</div>
-                            <div className="text-[10px] text-slate-400 font-medium">AI application compiler</div>
-                        </div>
-                    </div>
-                    <div className="hidden md:flex gap-8 text-sm font-semibold text-slate-500">
-                        <a href="#how" className="hover:text-slate-900">How it works</a>
-                        <a href="#use-cases" className="hover:text-slate-900">Use cases</a>
-                        <a href="#pricing" className="hover:text-slate-900">Pricing</a>
-                        <a href="#security" className="hover:text-slate-900">Security</a>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <button className="text-sm font-semibold text-slate-600 hidden sm:block">Talk to an expert</button>
-                        <Button className="rounded-2xl">Start building <Icon name="arrow-right" className="ml-2 h-4 w-4" /></Button>
-                    </div>
-                </div>
-            </nav>
-        );
+          <div class="feature-grid">
+            <div class="icard">
+              <div class="icon" aria-hidden="true">
+                <!-- Zap -->
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M13 2L3 14h7l-1 8 12-14h-7l-1-6Z" stroke="rgba(244,246,251,.9)" stroke-width="1.6" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div>
+                <div class="it">Minutes, not months</div>
+                <div class="id">Get a working first version instantly, then iterate.</div>
+              </div>
+            </div>
 
-        const App = () => {
-            const [input, setInput] = useState("");
-            const [chat, setChat] = useState([{ role: 'bot', text: "Tell me what you need. I'll ask a few questions, then deploy a first version." }]);
+            <div class="icard">
+              <div class="icon" aria-hidden="true">
+                <!-- Shield -->
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2l8 4v6c0 6-3.6 9.8-8 10-4.4-.2-8-4-8-10V6l8-4Z" stroke="rgba(244,246,251,.9)" stroke-width="1.6" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div>
+                <div class="it">Enterprise-ready</div>
+                <div class="id">Governance, auditability, and controls from day one.</div>
+              </div>
+            </div>
 
-            const send = () => {
-                if(!input) return;
-                setChat([...chat, { role: 'user', text: input }, { role: 'bot', text: "Got it. Who will use this app, and what’s the approval workflow?" }]);
-                setInput("");
-            };
+            <div class="icard">
+              <div class="icon" aria-hidden="true">
+                <!-- Workflow -->
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M6 4h6v6H6V4Z" stroke="rgba(244,246,251,.9)" stroke-width="1.6"/>
+                  <path d="M12 7h6v6h-6" stroke="rgba(244,246,251,.9)" stroke-width="1.6"/>
+                  <path d="M9 10v10h9" stroke="rgba(244,246,251,.9)" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div>
+                <div class="it">Real workflows</div>
+                <div class="id">Approvals, SLAs, automations, and business logic.</div>
+              </div>
+            </div>
 
-            return (
-                <div className="hero-gradient min-h-screen">
-                    <Nav />
-                    
-                    {/* HERO SECTION */}
-                    <div className="max-w-7xl mx-auto px-8 py-20 lg:py-32 grid lg:grid-cols-2 gap-16 items-start">
-                        <div>
-                            <div className="flex gap-2 mb-8">
-                                <Badge>Platform-as-a-Compiler</Badge>
-                                <Badge variant="outline">AI-first app building</Badge>
-                            </div>
-                            <h1 className="text-6xl font-bold leading-[1.1] tracking-tight text-slate-900">Describe the app you need. <span className="text-slate-400 font-medium">Veloxity builds it.</span></h1>
-                            <p className="text-xl text-slate-500 mt-8 mb-12 leading-relaxed max-w-xl">Veloxity turns plain English into secure, scalable business applications — UI, workflows, permissions, and APIs — deployed in minutes.</p>
-                            <div className="flex gap-4 mb-16">
-                                <Button className="px-8 py-6 text-lg rounded-2xl">Start building <Icon name="arrow-right" className="ml-2" /></Button>
-                                <Button variant="outline" className="px-8 py-6 text-lg rounded-2xl">Talk to an expert (15 min)</Button>
-                            </div>
-                            <div className="grid sm:grid-cols-2 gap-4">
-                                {[
-                                    { i: "zap", t: "Minutes, not months", d: "Get working versions instantly." },
-                                    { i: "shield", t: "Enterprise-ready", d: "Governance built-in from day one." },
-                                    { i: "workflow", t: "Real workflows", d: "Approvals and business logic." },
-                                    { i: "boxes", t: "Not a spreadsheet", d: "True apps with permissions." }
-                                ].map(f => (
-                                    <div key={f.t} className="p-5 border rounded-3xl bg-white/50 backdrop-blur-sm shadow-sm flex gap-4">
-                                        <div className="h-10 w-10 shrink-0 flex items-center justify-center border rounded-xl bg-white"><Icon name={f.i} /></div>
-                                        <div><div className="font-bold text-sm">{f.t}</div><p className="text-xs text-slate-400 mt-1">{f.d}</p></div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+            <div class="icard">
+              <div class="icon" aria-hidden="true">
+                <!-- Boxes -->
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M4 7l8-4 8 4-8 4-8-4Z" stroke="rgba(244,246,251,.9)" stroke-width="1.6" stroke-linejoin="round"/>
+                  <path d="M4 7v10l8 4 8-4V7" stroke="rgba(244,246,251,.9)" stroke-width="1.6" stroke-linejoin="round"/>
+                  <path d="M12 11v10" stroke="rgba(244,246,251,.9)" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div>
+                <div class="it">Not a spreadsheet</div>
+                <div class="id">Applications with permissions, UI, and APIs — compiled.</div>
+              </div>
+            </div>
+          </div>
 
-                        {/* CHAT INTERFACE */}
-                        <Card className="p-8 shadow-2xl relative overflow-hidden">
-                            <div className="flex justify-between mb-8">
-                                <div><h3 className="font-bold text-slate-900">Build with Veloxity</h3><p className="text-xs text-slate-400">Chat → compiler → deployed app</p></div>
-                                <Badge>Live Demo</Badge>
-                            </div>
-                            <div className="h-80 overflow-y-auto bg-slate-50/50 rounded-3xl p-6 mb-6 flex flex-col gap-4 border border-slate-100">
-                                {chat.map((m, i) => (
-                                    <div key={i} className={`p-4 rounded-[1.5rem] text-sm max-w-[85%] leading-relaxed ${m.role === 'bot' ? 'bg-white border border-slate-100 text-slate-600 shadow-sm' : 'bg-slate-900 text-white ml-auto'}`}>
-                                        {m.text}
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="flex gap-3">
-                                <input className="flex-1 border rounded-2xl px-5 text-sm outline-none focus:ring-2 focus:ring-slate-900 transition-all" placeholder="I need a vendor tracker..." value={input} onChange={e => setInput(e.target.value)} onKeyPress={e => e.key === 'Enter' && send()} />
-                                <Button onClick={send} className="px-8">Send</Button>
-                            </div>
-                        </Card>
-                    </div>
+          <div class="pill-row">
+            <div class="pill">
+              <!-- check -->
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M20 6L9 17l-5-5" stroke="rgba(244,246,251,.8)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Free tier to prove the magic
+            </div>
+            <div class="pill">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M20 6L9 17l-5-5" stroke="rgba(244,246,251,.8)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Pro starts at $750/month
+            </div>
+            <div class="pill">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M20 6L9 17l-5-5" stroke="rgba(244,246,251,.8)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              No “gotcha” record walls
+            </div>
+          </div>
+        </div>
 
-                    {/* FEATURES SECTION */}
-                    <section className="max-w-7xl mx-auto px-8 py-24 border-t border-slate-100">
-                        <h2 className="text-4xl font-bold mb-6">This is not another no-code tool</h2>
-                        <p className="text-lg text-slate-400 mb-16 max-w-2xl font-medium">Veloxity is an application compiler: conversational inputs become platform-native configuration and deploy into a secure runtime.</p>
-                        <div className="grid md:grid-cols-2 gap-4">
-                            {[
-                                { i: "terminal", t: "AI as your lead architect", d: "Veloxity designs complete applications — not code snippets." },
-                                { i: "building", t: "A real platform", d: "Apps run on a governed runtime: permissions, data, workflows." },
-                                { i: "gauge", t: "Built for scale", d: "High data limits and predictable growth paths." },
-                                { i: "lock", t: "Production controls", d: "Versioning, audit trails, and safe change management." }
-                            ].map(it => (
-                                <Card key={it.t} className="p-8 flex gap-6 items-start">
-                                    <div className="h-12 w-12 shrink-0 flex items-center justify-center border rounded-2xl bg-slate-50"><Icon name={it.i} /></div>
-                                    <div><h4 className="font-bold text-slate-900 mb-2">{it.t}</h4><p className="text-sm text-slate-400 leading-relaxed">{it.d}</p></div>
-                                </Card>
-                            ))}
-                        </div>
-                    </section>
+        <!-- Right: Chat Card -->
+        <div class="card" aria-label="Veloxity chat demo">
+          <div class="head">
+            <div>
+              <div class="title">Build with Veloxity</div>
+              <div class="meta">Chat → compiler → deployed app</div>
+            </div>
+            <span class="badge">Live demo</span>
+          </div>
+          <div class="body">
+            <div class="chatbox" id="chatbox" aria-live="polite"></div>
 
-                    {/* USE CASES */}
-                    <section id="use-cases" className="max-w-7xl mx-auto px-8 py-24 border-t border-slate-100">
-                        <Badge className="mb-4">Use cases</Badge>
-                        <h2 className="text-4xl font-bold mb-6">Built for real business problems</h2>
-                        <p className="text-lg text-slate-400 mb-16 max-w-2xl">If you can describe it, Veloxity can build it — and keep it maintainable as it evolves.</p>
-                        <div className="grid md:grid-cols-2 gap-6">
-                            {[
-                                { t: "Operations", i: "boxes", d: "Approvals, inventory, incident tracking.", b: ["Workflows", "Dashboards"] },
-                                { t: "Finance", i: "database", d: "Budgeting, audits, spend visibility.", b: ["Audit trails", "Controls"] },
-                                { t: "RevOps", i: "users", d: "Custom CRM flows, deal workflows.", b: ["Pipelines", "Integrations"] },
-                                { t: "HR", i: "globe", d: "Onboarding, compliance tasks.", b: ["Portals", "Permissions"] }
-                            ].map(c => (
-                                <Card key={c.t} className="p-10 flex gap-8">
-                                    <div className="h-16 w-16 shrink-0 flex items-center justify-center border rounded-3xl bg-slate-50"><Icon name={c.i} className="h-8 w-8" /></div>
-                                    <div>
-                                        <h4 className="text-2xl font-bold mb-3">{c.t}</h4>
-                                        <p className="text-sm text-slate-400 mb-6 leading-relaxed">{c.d}</p>
-                                        <div className="flex gap-2">{c.b.map(tag => <Badge key={tag} variant="outline">{tag}</Badge>)}</div>
-                                    </div>
-                                </Card>
-                            ))}
-                        </div>
-                    </section>
+            <div class="input-row">
+              <input class="input" id="chatInput" placeholder="" autocomplete="off" />
+              <button class="btn primary" id="sendBtn" type="button">Send</button>
+            </div>
 
-                    {/* PRICING */}
-                    <section id="pricing" className="max-w-7xl mx-auto px-8 py-24 border-t border-slate-100">
-                        <Badge className="mb-4">Pricing</Badge>
-                        <h2 className="text-4xl font-bold mb-6 text-center">Priced for outcomes, not seats</h2>
-                        <div className="grid md:grid-cols-4 gap-4 mt-16">
-                            {[
-                                { n: "Free", p: "$0", f: ["1 app", "Basic workflows"] },
-                                { n: "Pro", p: "$750/mo", f: ["Multiple apps", "APIs"], h: true },
-                                { n: "Team", p: "$3,500/mo", f: ["Governance", "Audit trails"] },
-                                { n: "Enterprise", p: "Custom", f: ["SSO/SCIM", "Full SLA"] }
-                            ].map(t => (
-                                <Card key={t.n} className={`p-8 flex flex-col ${t.h ? 'ring-2 ring-slate-900 shadow-xl' : ''}`}>
-                                    <div className="font-bold text-slate-900 mb-1">{t.n} {t.h && <Badge className="ml-2">Popular</Badge>}</div>
-                                    <div className="text-3xl font-bold mt-6 mb-2">{t.p}</div>
-                                    <ul className="space-y-4 mb-10 flex-1 mt-8">
-                                        {t.f.map(f => <li key={f} className="text-sm text-slate-500 flex items-center gap-2"><Icon name="check" className="h-4 w-4 text-slate-900" /> {f}</li>)}
-                                    </ul>
-                                    <Button variant={t.h ? "default" : "outline"} className="w-full py-6 rounded-2xl">Choose {t.n}</Button>
-                                </Card>
-                            ))}
-                        </div>
-                    </section>
+            <div class="chat-actions">
+              <button class="btn" id="exampleBtn" type="button">Use example</button>
+              <button class="btn primary" id="buildBtn" type="button" style="display:none;">
+                Build my app <span aria-hidden="true">→</span>
+              </button>
 
-                    {/* SECURITY & CTA */}
-                    <section id="security" className="bg-slate-900 py-32 text-white">
-                        <div className="max-w-7xl mx-auto px-8">
-                            <h2 className="text-5xl font-bold mb-20 text-center">Stop waiting on software. <br/><span className="text-slate-500">Build it today.</span></h2>
-                            <div className="grid md:grid-cols-3 gap-12">
-                                {["Governed by default", "Secure runtime", "Safe automation"].map(s => (
-                                    <div key={s}>
-                                        <div className="h-12 w-12 border border-slate-700 rounded-2xl flex items-center justify-center mb-8"><Icon name="shield" /></div>
-                                        <h4 className="text-xl font-bold mb-4">{s}</h4>
-                                        <p className="text-slate-400 leading-relaxed text-sm font-medium">Role-based access, change tracking, and policy enforcement built-in.</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </section>
+              <div class="rightnote">
+                <!-- lock -->
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M7 11V8a5 5 0 0110 0v3" stroke="rgba(244,246,251,.7)" stroke-width="1.6" stroke-linecap="round"/>
+                  <path d="M6 11h12v10H6V11Z" stroke="rgba(244,246,251,.7)" stroke-width="1.6" stroke-linejoin="round"/>
+                </svg>
+                Secure by design
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-                    <footer className="py-20 border-t border-slate-100 px-8 text-center text-xs text-slate-400 font-bold uppercase tracking-widest">
-                        <div className="font-bold text-slate-900 text-2xl mb-4 tracking-tighter italic">Veloxity</div>
-                        <p>© 2026 Veloxity. All rights reserved.</p>
-                    </footer>
-                </div>
-            );
-        };
+      <!-- Department pills -->
+      <div class="mini-grid" style="margin-top:22px;">
+        <div class="mini-card"><div class="t">Operations</div><div class="d">Build bespoke tools fast</div></div>
+        <div class="mini-card"><div class="t">Finance</div><div class="d">Controls, routing, audits</div></div>
+        <div class="mini-card"><div class="t">RevOps</div><div class="d">Custom workflows</div></div>
+        <div class="mini-card"><div class="t">HR</div><div class="d">Portals & onboarding</div></div>
+      </div>
+    </div>
+  </header>
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+  <!-- NOT ANOTHER NO-CODE -->
+  <section class="section">
+    <div class="container">
+      <div class="eyebrow"><span class="badge solid">Differentiation</span></div>
+      <h2 class="h2">This is not another no-code tool</h2>
+      <p class="subtitle">
+        Veloxity is an application compiler: conversational inputs become platform-native configuration and deploy into a secure runtime.
+      </p>
+
+      <div class="grid4" style="margin-top:18px;">
+        <div class="icard">
+          <div class="icon" aria-hidden="true">
+            <!-- terminal -->
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M4 5h16v14H4V5Z" stroke="rgba(244,246,251,.9)" stroke-width="1.6"/>
+              <path d="M7 9l2.5 2.5L7 14" stroke="rgba(244,246,251,.9)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M11.5 14H17" stroke="rgba(244,246,251,.9)" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div>
+            <div class="it">AI as your lead architect</div>
+            <div class="id">Veloxity designs complete applications — not code snippets.</div>
+          </div>
+        </div>
+
+        <div class="icard">
+          <div class="icon" aria-hidden="true">
+            <!-- building -->
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M3 21V7l9-4 9 4v14" stroke="rgba(244,246,251,.9)" stroke-width="1.6" stroke-linejoin="round"/>
+              <path d="M9 21v-8h6v8" stroke="rgba(244,246,251,.9)" stroke-width="1.6" stroke-linejoin="round"/>
+              <path d="M7 10h2M7 13h2M15 10h2M15 13h2" stroke="rgba(244,246,251,.9)" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div>
+            <div class="it">A real platform</div>
+            <div class="id">Apps run on a governed runtime: permissions, data, workflows, APIs.</div>
+          </div>
+        </div>
+
+        <div class="icard">
+          <div class="icon" aria-hidden="true">
+            <!-- gauge -->
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 20a8 8 0 1 1 8-8" stroke="rgba(244,246,251,.9)" stroke-width="1.6" stroke-linecap="round"/>
+              <path d="M12 12l5-3" stroke="rgba(244,246,251,.9)" stroke-width="1.6" stroke-linecap="round"/>
+              <path d="M4 20h16" stroke="rgba(244,246,251,.9)" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div>
+            <div class="it">Built for scale</div>
+            <div class="id">High data limits, performance controls, predictable growth paths.</div>
+          </div>
+        </div>
+
+        <div class="icard">
+          <div class="icon" aria-hidden="true">
+            <!-- lock -->
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M7 11V8a5 5 0 0110 0v3" stroke="rgba(244,246,251,.9)" stroke-width="1.6" stroke-linecap="round"/>
+              <path d="M6 11h12v10H6V11Z" stroke="rgba(244,246,251,.9)" stroke-width="1.6" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <div class="it">Production controls</div>
+            <div class="id">Versioning, environments, audit trails, and safe change management.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="section" id="how">
+    <div class="container">
+      <div class="eyebrow"><span class="badge solid">How it works</span></div>
+      <h2 class="h2">From conversation to production in minutes</h2>
+      <p class="subtitle">Get a working first version fast — then improve it in tight loops.</p>
+
+      <div class="grid3" style="margin-top:18px;">
+        <div class="step">
+          <div class="chip"><b>01</b> Step</div>
+          <div class="st">Describe</div>
+          <div class="sd">Explain what the app should do in plain English. Veloxity captures requirements fast.</div>
+        </div>
+        <div class="step">
+          <div class="chip"><b>02</b> Step</div>
+          <div class="st">Refine</div>
+          <div class="sd">Veloxity asks smart questions and produces a complete design — data, UI, workflows, permissions.</div>
+        </div>
+        <div class="step">
+          <div class="chip"><b>03</b> Step</div>
+          <div class="st">Deploy</div>
+          <div class="sd">A working application is compiled and deployed instantly. Iterate by chat or in the editor.</div>
+        </div>
+      </div>
+
+      <div class="callout">
+        <div>
+          <div style="font-weight:750;">The promise</div>
+          <div style="color:var(--muted2); margin-top:6px;">No consultants. No backlog. No brittle scripts. Just an app that fits your process.</div>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn primary" type="button">Start building <span aria-hidden="true">→</span></button>
+          <button class="btn" type="button">Watch a demo</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- USE CASES -->
+  <section class="section" id="use-cases">
+    <div class="container">
+      <div class="eyebrow"><span class="badge solid">Use cases</span></div>
+      <h2 class="h2">Built for real business problems</h2>
+      <p class="subtitle">If you can describe it, Veloxity can build it — and keep it maintainable as it evolves.</p>
+
+      <div class="grid2cards" style="margin-top:18px;">
+        <div class="tier">
+          <div style="display:flex; gap:14px; align-items:flex-start;">
+            <div class="icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M4 7l8-4 8 4-8 4-8-4Z" stroke="rgba(244,246,251,.9)" stroke-width="1.6" stroke-linejoin="round"/>
+                <path d="M4 7v10l8 4 8-4V7" stroke="rgba(244,246,251,.9)" stroke-width="1.6" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div>
+              <div class="it" style="font-size:18px;">Operations</div>
+              <div class="id">Approvals, inventory, checklists, incident tracking, internal tools.</div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
+                <span class="badge">Workflows</span><span class="badge">Dashboards</span><span class="badge">Role-based access</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tier">
+          <div style="display:flex; gap:14px; align-items:flex-start;">
+            <div class="icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M4 4h16v16H4V4Z" stroke="rgba(244,246,251,.9)" stroke-width="1.6"/>
+                <path d="M8 8h8M8 12h8M8 16h5" stroke="rgba(244,246,251,.9)" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div>
+              <div class="it" style="font-size:18px;">Finance</div>
+              <div class="id">Budgeting, audits, controls, request routing, spend visibility.</div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
+                <span class="badge">Audit trails</span><span class="badge">Controls</span><span class="badge">Exports & APIs</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tier">
+          <div style="display:flex; gap:14px; align-items:flex-start;">
+            <div class="icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M7 7h10v4H7V7Z" stroke="rgba(244,246,251,.9)" stroke-width="1.6"/>
+                <path d="M7 15h6v4H7v-4Z" stroke="rgba(244,246,251,.9)" stroke-width="1.6"/>
+                <path d="M13 17h4v2h-4" stroke="rgba(244,246,251,.9)" stroke-width="1.6"/>
+              </svg>
+            </div>
+            <div>
+              <div class="it" style="font-size:18px;">RevOps</div>
+              <div class="id">Custom CRM flows, deal workflows, forecasting inputs, playbooks.</div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
+                <span class="badge">Pipelines</span><span class="badge">Approvals</span><span class="badge">Integrations</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tier">
+          <div style="display:flex; gap:14px; align-items:flex-start;">
+            <div class="icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M7 21v-8a5 5 0 0110 0v8" stroke="rgba(244,246,251,.9)" stroke-width="1.6" stroke-linecap="round"/>
+                <path d="M9 10V7a3 3 0 016 0v3" stroke="rgba(244,246,251,.9)" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div>
+              <div class="it" style="font-size:18px;">HR</div>
+              <div class="id">Onboarding, compliance tasks, internal portals, policy workflows.</div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
+                <span class="badge">Portals</span><span class="badge">Tasks</span><span class="badge">Permissions</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="section" id="pricing">
+    <div class="container">
+      <div class="eyebrow"><span class="badge solid">Pricing</span></div>
+      <h2 class="h2">Priced for outcomes, not seats</h2>
+      <p class="subtitle">Veloxity replaces consulting projects and internal dev work — not spreadsheets.</p>
+
+      <div class="grid4" style="margin-top:18px;">
+        <div class="tier">
+          <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;">
+            <div>
+              <div class="tn">Free</div>
+              <div class="tp">$0</div>
+            </div>
+            <span class="badge"> </span>
+          </div>
+          <div class="tt">Come play, prove the magic</div>
+          <ul>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="rgba(244,246,251,.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              1 app
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="rgba(244,246,251,.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Demo data limits
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="rgba(244,246,251,.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Basic workflows
+            </li>
+          </ul>
+          <button class="btn wfull" type="button" style="margin-top:16px;">Try Free</button>
+        </div>
+
+        <div class="tier pop">
+          <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;">
+            <div>
+              <div class="tn">Pro</div>
+              <div class="tp">$750/mo</div>
+            </div>
+            <span class="badge solid">Most popular</span>
+          </div>
+          <div class="tt">Cheaper than one consultant day</div>
+          <ul>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="rgba(244,246,251,.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Multiple apps
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="rgba(244,246,251,.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Higher data limits
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="rgba(244,246,251,.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Starter API + integrations
+            </li>
+          </ul>
+          <button class="btn primary wfull" type="button" style="margin-top:16px;">Start Pro</button>
+          <div class="small">Want validation before checkout? <span style="text-decoration:underline; cursor:pointer;">Book 15 minutes</span>.</div>
+        </div>
+
+        <div class="tier">
+          <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;">
+            <div>
+              <div class="tn">Team</div>
+              <div class="tp">$3,500/mo</div>
+            </div>
+            <span class="badge"> </span>
+          </div>
+          <div class="tt">Fraction of a single IT project</div>
+          <ul>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="rgba(244,246,251,.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Department scale
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="rgba(244,246,251,.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Governance + audit
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="rgba(244,246,251,.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              More API seats + calls
+            </li>
+          </ul>
+          <button class="btn wfull" type="button" style="margin-top:16px;">Start Team</button>
+        </div>
+
+        <div class="tier">
+          <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;">
+            <div>
+              <div class="tn">Enterprise</div>
+              <div class="tp">$75K–$150K/yr</div>
+            </div>
+            <span class="badge">Custom</span>
+          </div>
+          <div class="tt">10% of custom dev cost</div>
+          <ul>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="rgba(244,246,251,.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Org-wide rollout
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="rgba(244,246,251,.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              SSO/SCIM + environments
+            </li>
+            <li>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="rgba(244,246,251,.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Custom limits + SLA
+            </li>
+          </ul>
+          <button class="btn wfull" type="button" style="margin-top:16px;">Talk to Sales</button>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top:16px;">
+        <div>
+          <div style="font-weight:750;">Predictable growth</div>
+          <div style="color:var(--muted2); margin-top:6px;">Tier limits exist to protect performance and governance — not to surprise you.</div>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn" type="button">See full pricing</button>
+          <button class="btn primary" type="button">Start building <span aria-hidden="true">→</span></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECURITY -->
+  <section class="section" id="security">
+    <div class="container">
+      <div class="eyebrow"><span class="badge solid">Security</span></div>
+      <h2 class="h2">Enterprise-grade trust, without enterprise friction</h2>
+      <p class="subtitle">Veloxity is built for real teams: permissions, governance, and controls are first-class — not add-ons.</p>
+
+      <div class="grid3" style="margin-top:18px;">
+        <div class="step">
+          <div class="icon" style="margin-bottom:12px;" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2l8 4v6c0 6-3.6 9.8-8 10-4.4-.2-8-4-8-10V6l8-4Z" stroke="rgba(244,246,251,.9)" stroke-width="1.6" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="st" style="margin-top:0;">Governed by default</div>
+          <div class="sd">Role-based access, audit-friendly change tracking, and predictable controls.</div>
+        </div>
+
+        <div class="step">
+          <div class="icon" style="margin-bottom:12px;" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M7 11V8a5 5 0 0110 0v3" stroke="rgba(244,246,251,.9)" stroke-width="1.6" stroke-linecap="round"/>
+              <path d="M6 11h12v10H6V11Z" stroke="rgba(244,246,251,.9)" stroke-width="1.6" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="st" style="margin-top:0;">Secure runtime</div>
+          <div class="sd">Apps run inside a managed platform with guardrails and policy enforcement.</div>
+        </div>
+
+        <div class="step">
+          <div class="icon" style="margin-bottom:12px;" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M6 4h6v6H6V4Z" stroke="rgba(244,246,251,.9)" stroke-width="1.6"/>
+              <path d="M12 7h6v6h-6" stroke="rgba(244,246,251,.9)" stroke-width="1.6"/>
+              <path d="M9 10v10h9" stroke="rgba(244,246,251,.9)" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="st" style="margin-top:0;">Safe automation</div>
+          <div class="sd">API governors, workflow limits, and approvals prevent runaway behavior.</div>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top:16px;">
+        <div>
+          <div style="font-weight:750;">Security review?</div>
+          <div style="color:var(--muted2); margin-top:6px;">We can provide security & architecture docs, and support SSO/SCIM on Enterprise.</div>
+        </div>
+        <button class="btn" type="button">Request security packet</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section class="section">
+    <div class="container">
+      <div class="cta-box">
+        <div>
+          <h3>Stop waiting on software. Build it.</h3>
+          <p>Veloxity turns your requirements into a production app you can iterate in tight loops.</p>
+          <div class="cta-row" style="margin-top:18px;">
+            <button class="btn primary" type="button">Start building <span aria-hidden="true">→</span></button>
+            <button class="btn" type="button">Talk to an expert</button>
+          </div>
+        </div>
+
+        <div class="cta-bullets">
+          <div class="bullet">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="rgba(244,246,251,.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Audit trails
+          </div>
+          <div class="bullet">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="rgba(244,246,251,.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Versioning
+          </div>
+          <div class="bullet">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="rgba(244,246,251,.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Environments
+          </div>
+          <div class="bullet">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="rgba(244,246,251,.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Governed APIs
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="footgrid">
+        <div>
+          <div class="brand">
+            <div class="logo" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2l1.2 4.2L17.5 7.5l-4.3 1.3L12 13l-1.2-4.2L6.5 7.5l4.3-1.3L12 2Z" stroke="rgba(244,246,251,.9)" stroke-width="1.6" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="brand-title">
+              <div class="name">Veloxity</div>
+              <div class="tag">AI application compiler</div>
+            </div>
+          </div>
+          <p style="margin:12px 0 0; color:var(--muted2); line-height:1.55;">
+            Build bespoke business applications from conversation — deployed on a governed platform.
+          </p>
+        </div>
+
+        <div class="footlinks">
+          <a href="#how">How it works</a>
+          <a href="#use-cases">Use cases</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#security">Security</a>
+          <a href="#">Docs</a>
+          <a href="#">Contact</a>
+        </div>
+
+        <div class="footbox">
+          <div style="font-weight:750;">Sales-assist</div>
+          <div style="color:var(--muted2); margin-top:8px; line-height:1.55;">
+            Want validation before checkout? Book a 15-minute build session.
+          </div>
+          <button class="btn wfull" type="button" style="margin-top:12px;">Book 15 minutes</button>
+        </div>
+      </div>
+
+      <div class="tinyrow">
+        <div>© <span id="year"></span> Veloxity. All rights reserved.</div>
+        <div style="display:flex; gap:14px; flex-wrap:wrap;">
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+          <a href="#">Status</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // --- Chat demo logic (no dependencies) ---
+    const demoPrompts = [
+      "I need an internal tool to track vendor onboarding and approvals.",
+      "Build an operations dashboard with workflows and role-based access.",
+      "Create a lightweight CRM for my sales ops team with stages and tasks.",
+      "We need an app for equipment check-out, returns, and maintenance reminders.",
+    ];
+
+    const chatbox = document.getElementById("chatbox");
+    const input = document.getElementById("chatInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const exampleBtn = document.getElementById("exampleBtn");
+    const buildBtn = document.getElementById("buildBtn");
+    const year = document.getElementById("year");
+    year.textContent = new Date().getFullYear();
+
+    let placeholderIdx = 0;
+    let phase = "idle"; // idle | clarify | ready
+    let userTurns = 0;
+
+    function scrollBottom() {
+      chatbox.scrollTop = chatbox.scrollHeight + 9999;
+    }
+
+    function bubble(role, text) {
+      const div = document.createElement("div");
+      div.className = "bubble " + (role === "assistant" ? "assistant" : "user");
+      div.textContent = text;
+      chatbox.appendChild(div);
+      scrollBottom();
+    }
+
+    function assistantLater(text, delay=450) {
+      setTimeout(() => bubble("assistant", text), delay);
+    }
+
+    function setPlaceholder() {
+      input.placeholder = demoPrompts[placeholderIdx];
+    }
+
+    function cyclePlaceholder() {
+      placeholderIdx = (placeholderIdx + 1) % demoPrompts.length;
+      setPlaceholder();
+    }
+
+    function handleSend(textOverride) {
+      const t = (textOverride ?? input.value).trim();
+      if (!t) return;
+      input.value = "";
+      bubble("user", t);
+      userTurns += 1;
+
+      if (userTurns === 1) {
+        phase = "clarify";
+        assistantLater("Got it. Who will use this app (roles), and what’s the approval workflow?");
+        assistantLater("Also: roughly how much data will it hold (10k, 100k, millions of records)?", 900);
+        return;
+      }
+
+      if (userTurns === 2) {
+        assistantLater("Perfect. I’ll design the data model, screens, permissions, and the workflow rules.");
+        assistantLater("One more: do you need integrations (Slack/Email/Webhooks/API) on day one?", 950);
+        return;
+      }
+
+      if (userTurns === 3) {
+        phase = "ready";
+        assistantLater("Great. I’m ready to deploy a first version. You can iterate by chat or in the visual editor.");
+        setTimeout(() => { buildBtn.style.display = "inline-flex"; }, 520);
+        return;
+      }
+
+      assistantLater("Noted. I’ll incorporate that into the next deploy. Want me to redeploy now or batch changes?");
+    }
+
+    // init
+    bubble("assistant", "Tell me what you need. I’ll ask a few questions, then deploy a first version.");
+    setPlaceholder();
+    setInterval(cyclePlaceholder, 3500);
+
+    sendBtn.addEventListener("click", () => handleSend());
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter") handleSend(); });
+    exampleBtn.addEventListener("click", () => handleSend(input.placeholder));
+    buildBtn.addEventListener("click", () => {
+      bubble("assistant", "✅ Deploying a first version…");
+      assistantLater("Done. You’ll be redirected to your new app workspace.", 800);
+    });
+
+    // Make all primary CTAs scroll to top chat by default (demo behavior)
+    document.querySelectorAll(".btn.primary").forEach(btn => {
+      btn.addEventListener("click", () => {
+        // If it's not the build button, focus the chat input
+        if (btn.id !== "buildBtn") {
+          input.focus();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      });
+    });
+  </script>
 </body>
 </html>

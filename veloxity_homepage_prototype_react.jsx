@@ -1,0 +1,867 @@
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  ArrowRight,
+  Check,
+  Shield,
+  Sparkles,
+  Zap,
+  Workflow,
+  Boxes,
+  Gauge,
+  Lock,
+  TerminalSquare,
+  Building2,
+  Users,
+  Database,
+  Globe,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+
+/**
+ * Veloxity — Single Page Homepage Prototype
+ * - Tailwind styling
+ * - AI-first hero with interactive chat mock
+ * - Enterprise-credible layout
+ */
+
+const demoPrompts = [
+  "I need an internal tool to track vendor onboarding and approvals.",
+  "Build an operations dashboard with workflows and role-based access.",
+  "Create a lightweight CRM for my sales ops team with stages and tasks.",
+  "We need an app for equipment check-out, returns, and maintenance reminders.",
+];
+
+type ChatMsg = { role: "user" | "assistant"; text: string };
+
+function cx(...classes: Array<string | false | undefined | null>) {
+  return classes.filter(Boolean).join(" ");
+}
+
+function Section({
+  id,
+  eyebrow,
+  title,
+  subtitle,
+  children,
+  className,
+}: {
+  id?: string;
+  eyebrow?: string;
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <section id={id} className={cx("mx-auto max-w-6xl px-6 py-16", className)}>
+      <div className="mb-10">
+        {eyebrow ? (
+          <div className="mb-3 flex items-center gap-2">
+            <Badge variant="secondary" className="rounded-full">
+              {eyebrow}
+            </Badge>
+          </div>
+        ) : null}
+        <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h2>
+        {subtitle ? (
+          <p className="mt-3 max-w-3xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+            {subtitle}
+          </p>
+        ) : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function Nav() {
+  const links = [
+    { label: "How it works", href: "#how" },
+    { label: "Use cases", href: "#use-cases" },
+    { label: "Pricing", href: "#pricing" },
+    { label: "Security", href: "#security" },
+  ];
+
+  return (
+    <div className="sticky top-0 z-50 w-full border-b bg-background/70 backdrop-blur">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl border bg-background shadow-sm">
+            <Sparkles className="h-5 w-5" />
+          </div>
+          <div className="leading-tight">
+            <div className="text-sm font-semibold">Veloxity</div>
+            <div className="text-xs text-muted-foreground">AI application compiler</div>
+          </div>
+        </div>
+
+        <div className="hidden items-center gap-6 md:flex">
+          {links.map((l) => (
+            <a
+              key={l.href}
+              href={l.href}
+              className="text-sm text-muted-foreground hover:text-foreground"
+            >
+              {l.label}
+            </a>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" className="hidden sm:inline-flex">
+            Talk to an expert
+          </Button>
+          <Button className="rounded-xl">
+            Start building <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HeroChat() {
+  const [placeholderIdx, setPlaceholderIdx] = useState(0);
+  const [input, setInput] = useState("");
+  const [msgs, setMsgs] = useState<ChatMsg[]>([
+    {
+      role: "assistant",
+      text: "Tell me what you need. I’ll ask a few questions, then deploy a first version.",
+    },
+  ]);
+  const [phase, setPhase] = useState<"idle" | "clarify" | "ready">("idle");
+  const listRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setPlaceholderIdx((i) => (i + 1) % demoPrompts.length);
+    }, 3500);
+    return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    listRef.current?.scrollTo({ top: 999999, behavior: "smooth" });
+  }, [msgs.length]);
+
+  const suggested = useMemo(() => demoPrompts[placeholderIdx], [placeholderIdx]);
+
+  function pushAssistant(text: string, delay = 450) {
+    setTimeout(() => {
+      setMsgs((m) => [...m, { role: "assistant", text }]);
+    }, delay);
+  }
+
+  function handleSend(text?: string) {
+    const t = (text ?? input).trim();
+    if (!t) return;
+    setInput("");
+    setMsgs((m) => [...m, { role: "user", text: t }]);
+
+    // Simple scripted flow (mock)
+    const next = msgs.filter((m) => m.role === "user").length + 1;
+
+    if (next === 1) {
+      setPhase("clarify");
+      pushAssistant(
+        "Got it. Who will use this app (roles), and what’s the approval workflow?"
+      );
+      pushAssistant(
+        "Also: roughly how much data will it hold (10k, 100k, millions of records)?",
+        900
+      );
+      return;
+    }
+
+    if (next === 2) {
+      pushAssistant(
+        "Perfect. I’ll design the data model, screens, permissions, and the workflow rules.",
+        450
+      );
+      pushAssistant(
+        "One more: do you need integrations (Slack/Email/Webhooks/API) on day one?",
+        950
+      );
+      return;
+    }
+
+    if (next === 3) {
+      setPhase("ready");
+      pushAssistant(
+        "Great. I’m ready to deploy a first version. You can iterate by chat or in the visual editor.",
+        450
+      );
+      return;
+    }
+
+    // After ready, keep it helpful
+    pushAssistant(
+      "Noted. I’ll incorporate that into the next deploy. Want me to redeploy now or batch changes?"
+    );
+  }
+
+  return (
+    <Card className="rounded-3xl border bg-background/60 shadow-sm">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <CardTitle className="text-base">Build with Veloxity</CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Chat → compiler → deployed app
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="rounded-full">
+              Live demo
+            </Badge>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div
+          ref={listRef}
+          className="h-[340px] overflow-auto rounded-2xl border bg-background p-4"
+        >
+          <div className="space-y-3">
+            <AnimatePresence initial={false}>
+              {msgs.map((m, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.18 }}
+                  className={cx(
+                    "max-w-[92%] rounded-2xl px-3 py-2 text-sm leading-relaxed",
+                    m.role === "assistant"
+                      ? "bg-muted text-foreground"
+                      : "ml-auto bg-foreground text-background"
+                  )}
+                >
+                  {m.text}
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder={suggested}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleSend();
+            }}
+            className="h-11 rounded-2xl"
+          />
+          <Button onClick={() => handleSend()} className="h-11 rounded-2xl">
+            Send
+          </Button>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            className="rounded-full"
+            onClick={() => handleSend(suggested)}
+          >
+            Use example
+          </Button>
+
+          <AnimatePresence>
+            {phase === "ready" ? (
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 6 }}
+              >
+                <Button className="rounded-full">
+                  Build my app <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+
+          <div className="ml-auto hidden items-center gap-2 text-xs text-muted-foreground sm:flex">
+            <Lock className="h-4 w-4" />
+            Secure by design
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function Hero() {
+  return (
+    <section className="relative mx-auto max-w-6xl px-6 py-14 sm:py-20">
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <div className="pointer-events-none absolute -left-24 -top-24 h-80 w-80 rounded-full bg-muted/40 blur-3xl" />
+        <div className="pointer-events-none absolute -right-24 top-10 h-80 w-80 rounded-full bg-muted/40 blur-3xl" />
+        <div className="pointer-events-none absolute left-1/2 top-2/3 h-96 w-96 -translate-x-1/2 rounded-full bg-muted/30 blur-3xl" />
+      </div>
+
+      <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:items-start">
+        <div>
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <Badge variant="secondary" className="rounded-full">
+              Platform-as-a-Compiler
+            </Badge>
+            <Badge variant="outline" className="rounded-full">
+              AI-first app building
+            </Badge>
+          </div>
+
+          <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+            Describe the app you need. Veloxity builds it.
+          </h1>
+          <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+            Veloxity turns plain English into secure, scalable business applications — data model,
+            UI, workflows, permissions, and APIs — deployed in minutes.
+          </p>
+
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+            <Button className="h-11 rounded-2xl">
+              Start building <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+            <Button variant="outline" className="h-11 rounded-2xl">
+              Talk to an expert (15 min)
+            </Button>
+          </div>
+
+          <div className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {[
+              {
+                icon: Zap,
+                title: "Minutes, not months",
+                desc: "Get a working first version instantly, then iterate.",
+              },
+              {
+                icon: Shield,
+                title: "Enterprise-ready",
+                desc: "Governance, auditability, and controls from day one.",
+              },
+              {
+                icon: Workflow,
+                title: "Real workflows",
+                desc: "Approvals, SLAs, automations, and business logic.",
+              },
+              {
+                icon: Boxes,
+                title: "Not a spreadsheet",
+                desc: "Applications with permissions, UI, and APIs — compiled.",
+              },
+            ].map((f) => (
+              <div key={f.title} className="flex gap-3 rounded-2xl border bg-background/60 p-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl border bg-background shadow-sm">
+                  <f.icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-sm font-medium">{f.title}</div>
+                  <div className="mt-1 text-sm text-muted-foreground">{f.desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4" />
+              Free tier to prove the magic
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4" />
+              Pro starts at $750/month
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4" />
+              No “gotcha” record walls
+            </div>
+          </div>
+        </div>
+
+        <HeroChat />
+      </div>
+
+      <div className="mt-14 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {["Operations", "Finance", "RevOps", "HR"].map((t) => (
+          <div key={t} className="rounded-2xl border bg-background/60 p-4 text-center">
+            <div className="text-sm font-medium">{t}</div>
+            <div className="mt-1 text-xs text-muted-foreground">Build bespoke tools fast</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function NotAnotherNoCode() {
+  const items = [
+    {
+      icon: TerminalSquare,
+      title: "AI as your lead architect",
+      desc: "Veloxity designs complete applications — not code snippets.",
+    },
+    {
+      icon: Building2,
+      title: "A real platform",
+      desc: "Apps run on a governed runtime: permissions, data, workflows, APIs.",
+    },
+    {
+      icon: Gauge,
+      title: "Built for scale",
+      desc: "High data limits, performance controls, predictable growth paths.",
+    },
+    {
+      icon: Lock,
+      title: "Production controls",
+      desc: "Versioning, environments, audit trails, and safe change management.",
+    },
+  ];
+
+  return (
+    <Section
+      title="This is not another no-code tool"
+      subtitle="Veloxity is an application compiler: conversational inputs become platform-native configuration and deploy into a secure runtime."
+    >
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {items.map((it) => (
+          <Card key={it.title} className="rounded-3xl">
+            <CardContent className="flex gap-4 p-6">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border bg-background shadow-sm">
+                <it.icon className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="text-base font-semibold">{it.title}</div>
+                <p className="mt-1 text-sm text-muted-foreground">{it.desc}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+function HowItWorks() {
+  const steps = [
+    {
+      num: "01",
+      title: "Describe",
+      desc: "Explain what the app should do in plain English. Veloxity captures requirements fast.",
+    },
+    {
+      num: "02",
+      title: "Refine",
+      desc: "Veloxity asks smart questions and produces a complete design — data, UI, workflows, permissions.",
+    },
+    {
+      num: "03",
+      title: "Deploy",
+      desc: "A working application is compiled and deployed instantly. Iterate by chat or in the editor.",
+    },
+  ];
+
+  return (
+    <Section
+      id="how"
+      eyebrow="How it works"
+      title="From conversation to production in minutes"
+      subtitle="Get a working first version fast — then improve it in tight loops."
+    >
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {steps.map((s) => (
+          <Card key={s.num} className="rounded-3xl">
+            <CardContent className="p-6">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border bg-background px-3 py-1 text-xs text-muted-foreground">
+                <span className="font-medium text-foreground">{s.num}</span>
+                Step
+              </div>
+              <div className="text-lg font-semibold">{s.title}</div>
+              <p className="mt-2 text-sm text-muted-foreground">{s.desc}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="mt-8 rounded-3xl border bg-background/60 p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <div className="text-base font-semibold">The promise</div>
+            <p className="mt-1 text-sm text-muted-foreground">
+              No consultants. No backlog. No brittle scripts. Just an app that fits your process.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button className="rounded-2xl">
+              Start building <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+            <Button variant="outline" className="rounded-2xl">
+              Watch a demo
+            </Button>
+          </div>
+        </div>
+      </div>
+    </Section>
+  );
+}
+
+function UseCases() {
+  const cards = [
+    {
+      icon: Boxes,
+      title: "Operations",
+      desc: "Approvals, inventory, checklists, incident tracking, internal tools.",
+      bullets: ["Workflows", "Dashboards", "Role-based access"],
+    },
+    {
+      icon: Database,
+      title: "Finance",
+      desc: "Budgeting, audits, controls, request routing, spend visibility.",
+      bullets: ["Audit trails", "Controls", "Exports & APIs"],
+    },
+    {
+      icon: Users,
+      title: "RevOps",
+      desc: "Custom CRM flows, deal workflows, forecasting inputs, playbooks.",
+      bullets: ["Pipelines", "Approvals", "Integrations"],
+    },
+    {
+      icon: Globe,
+      title: "HR",
+      desc: "Onboarding, compliance tasks, internal portals, policy workflows.",
+      bullets: ["Portals", "Tasks", "Permissions"],
+    },
+  ];
+
+  return (
+    <Section
+      id="use-cases"
+      eyebrow="Use cases"
+      title="Built for real business problems"
+      subtitle="If you can describe it, Veloxity can build it — and keep it maintainable as it evolves."
+    >
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {cards.map((c) => (
+          <Card key={c.title} className="rounded-3xl">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border bg-background shadow-sm">
+                  <c.icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-lg font-semibold">{c.title}</div>
+                  <p className="mt-1 text-sm text-muted-foreground">{c.desc}</p>
+                </div>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {c.bullets.map((b) => (
+                  <Badge key={b} variant="secondary" className="rounded-full">
+                    {b}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+function PricingTeaser() {
+  const tiers = [
+    {
+      name: "Free",
+      price: "$0",
+      tag: "Come play, prove the magic",
+      features: ["1 app", "Demo data limits", "Basic workflows"],
+      cta: "Try Free",
+      primary: false,
+    },
+    {
+      name: "Pro",
+      price: "$750/mo",
+      tag: "Cheaper than one consultant day",
+      features: ["Multiple apps", "Higher data limits", "Starter API + integrations"],
+      cta: "Start Pro",
+      primary: true,
+    },
+    {
+      name: "Team",
+      price: "$3,500/mo",
+      tag: "Fraction of a single IT project",
+      features: ["Department scale", "Governance + audit", "More API seats + calls"],
+      cta: "Start Team",
+      primary: false,
+    },
+    {
+      name: "Enterprise",
+      price: "$75K–$150K/yr",
+      tag: "10% of custom dev cost",
+      features: ["Org-wide rollout", "SSO/SCIM + environments", "Custom limits + SLA"],
+      cta: "Talk to Sales",
+      primary: false,
+    },
+  ];
+
+  return (
+    <Section
+      id="pricing"
+      eyebrow="Pricing"
+      title="Priced for outcomes, not seats"
+      subtitle="Veloxity replaces consulting projects and internal dev work — not spreadsheets."
+    >
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+        {tiers.map((t) => (
+          <Card
+            key={t.name}
+            className={cx(
+              "rounded-3xl",
+              t.primary && "border-foreground/30 shadow-md"
+            )}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="text-sm font-semibold">{t.name}</div>
+                  <div className="mt-2 text-2xl font-semibold tracking-tight">{t.price}</div>
+                </div>
+                {t.primary ? (
+                  <Badge className="rounded-full">Most popular</Badge>
+                ) : (
+                  <Badge variant="secondary" className="rounded-full">
+                    {t.name === "Enterprise" ? "Custom" : ""}
+                  </Badge>
+                )}
+              </div>
+              <p className="mt-2 text-sm text-muted-foreground">{t.tag}</p>
+
+              <div className="mt-5 space-y-2">
+                {t.features.map((f) => (
+                  <div key={f} className="flex items-start gap-2 text-sm">
+                    <Check className="mt-0.5 h-4 w-4" />
+                    <span>{f}</span>
+                  </div>
+                ))}
+              </div>
+
+              <Button
+                className={cx("mt-6 w-full rounded-2xl", !t.primary && "")}
+                variant={t.primary ? "default" : "outline"}
+              >
+                {t.cta}
+              </Button>
+
+              {t.name === "Pro" ? (
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Want a quick build session before checkout? <span className="underline">Book 15 minutes</span>.
+                </p>
+              ) : null}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="mt-8 rounded-3xl border bg-background/60 p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <div className="text-base font-semibold">Predictable growth</div>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Tier limits exist to protect performance and governance — not to surprise you.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" className="rounded-2xl">
+              See full pricing
+            </Button>
+            <Button className="rounded-2xl">
+              Start building <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+    </Section>
+  );
+}
+
+function Security() {
+  const items = [
+    {
+      icon: Shield,
+      title: "Governed by default",
+      desc: "Role-based access, audit-friendly change tracking, and predictable controls.",
+    },
+    {
+      icon: Lock,
+      title: "Secure runtime",
+      desc: "Apps run inside a managed platform with guardrails and policy enforcement.",
+    },
+    {
+      icon: Workflow,
+      title: "Safe automation",
+      desc: "API governors, workflow limits, and approvals prevent runaway behavior.",
+    },
+  ];
+
+  return (
+    <Section
+      id="security"
+      eyebrow="Security"
+      title="Enterprise-grade trust, without enterprise friction"
+      subtitle="Veloxity is built for real teams: permissions, governance, and controls are first-class — not add-ons."
+    >
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        {items.map((it) => (
+          <Card key={it.title} className="rounded-3xl">
+            <CardContent className="p-6">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border bg-background shadow-sm">
+                <it.icon className="h-5 w-5" />
+              </div>
+              <div className="mt-4 text-base font-semibold">{it.title}</div>
+              <p className="mt-2 text-sm text-muted-foreground">{it.desc}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="mt-8 rounded-3xl border bg-background/60 p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <div className="text-base font-semibold">Security review?</div>
+            <p className="mt-1 text-sm text-muted-foreground">
+              We can provide security & architecture docs, and support SSO/SCIM on Enterprise.
+            </p>
+          </div>
+          <Button variant="outline" className="rounded-2xl">
+            Request security packet
+          </Button>
+        </div>
+      </div>
+    </Section>
+  );
+}
+
+function FinalCTA() {
+  return (
+    <section className="mx-auto max-w-6xl px-6 pb-20">
+      <div className="rounded-[2rem] border bg-background/60 p-8 sm:p-10">
+        <div className="grid gap-6 md:grid-cols-2 md:items-center">
+          <div>
+            <h3 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+              Stop waiting on software. Build it.
+            </h3>
+            <p className="mt-3 text-sm text-muted-foreground sm:text-base">
+              Veloxity turns your requirements into a production app you can iterate in tight loops.
+            </p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <Button className="h-11 rounded-2xl">
+                Start building <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+              <Button variant="outline" className="h-11 rounded-2xl">
+                Talk to an expert
+              </Button>
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {["Audit trails", "Versioning", "Environments", "Governed APIs"].map((x) => (
+              <div key={x} className="flex items-center gap-2 rounded-2xl border bg-background p-4">
+                <Check className="h-4 w-4" />
+                <span className="text-sm font-medium">{x}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="border-t">
+      <div className="mx-auto grid max-w-6xl gap-6 px-6 py-10 md:grid-cols-3">
+        <div>
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl border bg-background shadow-sm">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="text-sm font-semibold">Veloxity</div>
+              <div className="text-xs text-muted-foreground">AI application compiler</div>
+            </div>
+          </div>
+          <p className="mt-3 text-sm text-muted-foreground">
+            Build bespoke business applications from conversation — deployed on a governed platform.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          <a href="#how" className="text-muted-foreground hover:text-foreground">
+            How it works
+          </a>
+          <a href="#use-cases" className="text-muted-foreground hover:text-foreground">
+            Use cases
+          </a>
+          <a href="#pricing" className="text-muted-foreground hover:text-foreground">
+            Pricing
+          </a>
+          <a href="#security" className="text-muted-foreground hover:text-foreground">
+            Security
+          </a>
+          <a href="#" className="text-muted-foreground hover:text-foreground">
+            Docs
+          </a>
+          <a href="#" className="text-muted-foreground hover:text-foreground">
+            Contact
+          </a>
+        </div>
+
+        <div className="rounded-2xl border bg-background/60 p-4">
+          <div className="text-sm font-semibold">Sales-assist</div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Want validation before checkout? Book a 15-minute build session.
+          </p>
+          <Button variant="outline" className="mt-3 w-full rounded-2xl">
+            Book 15 minutes
+          </Button>
+        </div>
+      </div>
+
+      <div className="mx-auto flex max-w-6xl flex-col gap-2 px-6 pb-10 text-xs text-muted-foreground md:flex-row md:items-center md:justify-between">
+        <div>© {new Date().getFullYear()} Veloxity. All rights reserved.</div>
+        <div className="flex gap-4">
+          <a href="#" className="hover:text-foreground">
+            Privacy
+          </a>
+          <a href="#" className="hover:text-foreground">
+            Terms
+          </a>
+          <a href="#" className="hover:text-foreground">
+            Status
+          </a>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+export default function VeloxityHomepagePrototype() {
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <Nav />
+      <Hero />
+      <NotAnotherNoCode />
+      <HowItWorks />
+      <UseCases />
+      <PricingTeaser />
+      <Security />
+      <FinalCTA />
+      <Footer />
+    </div>
+  );
+}

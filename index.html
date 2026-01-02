@@ -12,7 +12,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+        body { font-family: 'Inter', sans-serif; background-color: #ffffff; color: #0f172a; scroll-behavior: smooth; }
         .hero-gradient { background: radial-gradient(circle at top left, #f8fafc 0%, #ffffff 100%); }
     </style>
 </head>
@@ -20,293 +20,219 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useMemo, useRef } = React;
-        const { motion, AnimatePresence } = FramerMotion;
+        // This line fixes the ReferenceError by grabbing the library from the window object
+        const { motion, AnimatePresence } = window.FramerMotion;
+        const { useState, useEffect, useRef, useMemo } = React;
 
-        // --- ICON HELPER ---
+        // --- UI Component Shims ---
+        const cn = (...classes) => classes.filter(Boolean).join(" ");
+        
         const Icon = ({ name, className = "h-5 w-5" }) => {
             useEffect(() => { lucide.createIcons(); }, []);
             return <i data-lucide={name} className={className}></i>;
         };
 
-        // --- SHADCN/UI REPLACEMENTS (Matching your original imports) ---
-        const cn = (...classes) => classes.filter(Boolean).join(" ");
-
         const Button = ({ children, variant = "default", className = "", ...props }) => {
-            const base = "inline-flex items-center justify-center rounded-xl text-sm font-medium transition-all active:scale-95 disabled:opacity-50 px-4 py-2";
+            const base = "inline-flex items-center justify-center rounded-xl text-sm font-semibold transition-all active:scale-95 px-5 py-2.5";
             const styles = {
-                default: "bg-slate-900 text-white hover:bg-slate-800",
+                default: "bg-slate-900 text-white hover:bg-slate-800 shadow-sm",
                 outline: "border border-slate-200 bg-white hover:bg-slate-50 text-slate-700",
-                ghost: "hover:bg-slate-100 text-slate-600",
-                secondary: "bg-slate-100 text-slate-900 hover:bg-slate-200"
+                ghost: "hover:bg-slate-100 text-slate-600"
             };
             return <button className={cn(base, styles[variant], className)} {...props}>{children}</button>;
         };
 
-        const Card = ({ children, className = "" }) => <div className={cn("bg-white border border-slate-200 rounded-[2rem] shadow-sm", className)}>{children}</div>;
-        const CardHeader = ({ children, className = "" }) => <div className={cn("p-6 pb-3", className)}>{children}</div>;
-        const CardTitle = ({ children, className = "" }) => <h3 className={cn("font-semibold text-slate-900", className)}>{children}</h3>;
-        const CardContent = ({ children, className = "" }) => <div className={cn("p-6 pt-0", className)}>{children}</div>;
+        const Card = ({ children, className = "" }) => <div className={cn("bg-white border border-slate-100 rounded-[2rem] shadow-sm", className)}>{children}</div>;
+        
         const Badge = ({ children, variant = "secondary", className = "" }) => (
-            <span className={cn("px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider", 
-                variant === "outline" ? "border border-slate-200 text-slate-600" : "bg-slate-100 text-slate-800", className)}>{children}</span>
-        );
-        const Input = ({ className = "", ...props }) => (
-            <input className={cn("flex h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400", className)} {...props} />
+            <span className={cn("px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider", 
+                variant === "outline" ? "border border-slate-200 text-slate-500" : "bg-slate-100 text-slate-600", className)}>{children}</span>
         );
 
-        // --- DATA ---
+        // --- Data ---
         const demoPrompts = [
             "I need an internal tool to track vendor onboarding and approvals.",
             "Build an operations dashboard with workflows and role-based access.",
             "Create a lightweight CRM for my sales ops team with stages and tasks.",
-            "We need an app for equipment check-out, returns, and maintenance reminders.",
+            "We need an app for equipment check-out and maintenance reminders."
         ];
 
-        // --- MAIN PAGE SECTIONS ---
-
+        // --- Components ---
         const Nav = () => (
-            <nav className="sticky top-0 z-50 w-full border-b bg-white/70 backdrop-blur-md px-6 py-3">
-                <div className="mx-auto flex max-w-6xl items-center justify-between">
+            <nav className="sticky top-0 z-50 w-full border-b bg-white/70 backdrop-blur-md px-8 py-4">
+                <div className="mx-auto flex max-w-7xl items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-xl border bg-white shadow-sm"><Icon name="sparkles" /></div>
-                        <div className="leading-tight">
-                            <div className="text-sm font-bold">Veloxity</div>
-                            <div className="text-[10px] text-slate-500 font-medium">AI application compiler</div>
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl border shadow-sm font-bold text-slate-900">V</div>
+                        <div>
+                            <div className="text-sm font-bold tracking-tight">Veloxity</div>
+                            <div className="text-[10px] text-slate-400 font-medium">AI application compiler</div>
                         </div>
                     </div>
-                    <div className="hidden md:flex gap-8 text-sm font-medium text-slate-500">
-                        {["How it works", "Use cases", "Pricing", "Security"].map(l => (
-                            <a key={l} href={`#${l.toLowerCase().replace(/ /g, '-')}`} className="hover:text-slate-900">{l}</a>
-                        ))}
+                    <div className="hidden md:flex gap-8 text-sm font-semibold text-slate-500">
+                        <a href="#how" className="hover:text-slate-900">How it works</a>
+                        <a href="#use-cases" className="hover:text-slate-900">Use cases</a>
+                        <a href="#pricing" className="hover:text-slate-900">Pricing</a>
+                        <a href="#security" className="hover:text-slate-900">Security</a>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Button variant="ghost" className="hidden sm:inline-flex">Talk to an expert</Button>
-                        <Button className="rounded-xl">Start building <Icon name="arrow-right" className="ml-2 h-4 w-4" /></Button>
+                    <div className="flex items-center gap-4">
+                        <button className="text-sm font-semibold text-slate-600 hidden sm:block">Talk to an expert</button>
+                        <Button className="rounded-2xl">Start building <Icon name="arrow-right" className="ml-2 h-4 w-4" /></Button>
                     </div>
                 </div>
             </nav>
         );
 
-        const HeroChat = () => {
-            const [placeholderIdx, setPlaceholderIdx] = useState(0);
+        const App = () => {
             const [input, setInput] = useState("");
-            const [msgs, setMsgs] = useState([{ role: "assistant", text: "Tell me what you need. I’ll ask a few questions, then deploy a first version." }]);
-            const [phase, setPhase] = useState("idle");
+            const [chat, setChat] = useState([{ role: 'bot', text: "Tell me what you need. I'll ask a few questions, then deploy a first version." }]);
 
-            useEffect(() => {
-                const t = setInterval(() => setPlaceholderIdx(i => (i + 1) % demoPrompts.length), 3500);
-                return () => clearInterval(t);
-            }, []);
-
-            const handleSend = (text) => {
-                const t = (text || input).trim();
-                if (!t) return;
-                setMsgs([...msgs, { role: "user", text: t }]);
+            const send = () => {
+                if(!input) return;
+                setChat([...chat, { role: 'user', text: input }, { role: 'bot', text: "Got it. Who will use this app, and what’s the approval workflow?" }]);
                 setInput("");
-                setTimeout(() => {
-                    setMsgs(m => [...m, { role: "assistant", text: "Got it. Who will use this app (roles), and what’s the approval workflow?" }]);
-                    setPhase("ready");
-                }, 600);
             };
 
             return (
-                <Card className="rounded-[2.5rem] bg-white/60 p-6 shadow-xl">
-                    <div className="flex justify-between items-start mb-6">
-                        <div><CardTitle className="text-base">Build with Veloxity</CardTitle><p className="text-xs text-slate-500">Chat → compiler → deployed app</p></div>
-                        <Badge>Live Demo</Badge>
-                    </div>
-                    <div className="h-[300px] overflow-auto rounded-2xl border bg-white p-4 mb-4 space-y-3">
-                        {msgs.map((m, i) => (
-                            <div key={i} className={cn("p-3 rounded-2xl text-sm max-w-[90%]", m.role === 'assistant' ? "bg-slate-100 text-slate-700" : "ml-auto bg-slate-900 text-white")}>{m.text}</div>
-                        ))}
-                    </div>
-                    <div className="flex gap-2 mb-4">
-                        <Input placeholder={demoPrompts[placeholderIdx]} value={input} onChange={e => setInput(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSend()} />
-                        <Button onClick={() => handleSend()}>Send</Button>
-                    </div>
-                    <div className="flex justify-between items-center">
-                        <Button variant="outline" className="rounded-full text-xs" onClick={() => handleSend(demoPrompts[placeholderIdx])}>Use example</Button>
-                        {phase === "ready" && <Button className="rounded-full text-xs">Build my app <Icon name="arrow-right" className="ml-2 h-3 w-3" /></Button>}
-                    </div>
-                </Card>
-            );
-        };
-
-        const FeatureItem = ({ icon, title, desc }) => (
-            <div className="flex gap-4 rounded-2xl border bg-white/60 p-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl border bg-white shadow-sm"><Icon name={icon} /></div>
-                <div><div className="text-sm font-bold text-slate-900">{title}</div><p className="text-xs text-slate-500 font-medium leading-relaxed">{desc}</p></div>
-            </div>
-        );
-
-        const App = () => (
-            <div className="hero-gradient min-h-screen">
-                <Nav />
-                {/* HERO */}
-                <section className="mx-auto max-w-6xl px-6 py-20 lg:py-32 grid lg:grid-cols-2 gap-16 items-start">
-                    <div>
-                        <div className="flex gap-2 mb-6">
-                            <Badge>Platform-as-a-Compiler</Badge>
-                            <Badge variant="outline">AI-first app building</Badge>
-                        </div>
-                        <h1 className="text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 leading-[1.1]">Describe the app you need. <span className="text-slate-400">Veloxity builds it.</span></h1>
-                        <p className="mt-8 text-xl text-slate-500 leading-relaxed font-medium mb-10">Veloxity turns plain English into secure, scalable business applications — data model, UI, workflows, and APIs — deployed in minutes.</p>
-                        <div className="flex gap-4 mb-12">
-                            <Button className="px-8 py-6 text-base rounded-2xl">Start building <Icon name="arrow-right" className="ml-2 h-4 w-4" /></Button>
-                            <Button variant="outline" className="px-8 py-6 text-base rounded-2xl">Talk to an expert (15 min)</Button>
-                        </div>
-                        <div className="grid sm:grid-cols-2 gap-4">
-                            <FeatureItem icon="zap" title="Minutes, not months" desc="Get a working first version instantly." />
-                            <FeatureItem icon="shield" title="Enterprise-ready" desc="Governance and auditability from day one." />
-                            <FeatureItem icon="workflow" title="Real workflows" desc="Approvals, SLAs, and business logic." />
-                            <FeatureItem icon="boxes" title="Not a spreadsheet" desc="Full apps with permissions and APIs." />
-                        </div>
-                    </div>
-                    <HeroChat />
-                </section>
-
-                {/* NOT ANOTHER NO-CODE */}
-                <section className="max-w-6xl mx-auto px-6 py-24 border-t">
-                    <h2 className="text-4xl font-bold mb-4">This is not another no-code tool</h2>
-                    <p className="text-lg text-slate-500 mb-16 max-w-2xl">Veloxity is an application compiler: conversational inputs become platform-native configuration and deploy into a secure runtime.</p>
-                    <div className="grid md:grid-cols-2 gap-4">
-                        {[
-                            { icon: "terminal", title: "AI as your lead architect", desc: "Veloxity designs complete applications — not code snippets." },
-                            { icon: "building-2", title: "A real platform", desc: "Apps run on a governed runtime: permissions, data, workflows, APIs." },
-                            { icon: "gauge", title: "Built for scale", desc: "High data limits, performance controls, predictable growth paths." },
-                            { icon: "lock", title: "Production controls", desc: "Versioning, environments, and safe change management." }
-                        ].map(it => (
-                            <Card key={it.title} className="p-8 flex gap-6 items-start">
-                                <div className="h-12 w-12 flex items-center justify-center border rounded-2xl bg-slate-50"><Icon name={it.icon} /></div>
-                                <div><h4 className="font-bold text-slate-900 mb-2">{it.title}</h4><p className="text-sm text-slate-500 font-medium">{it.desc}</p></div>
-                            </Card>
-                        ))}
-                    </div>
-                </section>
-
-                {/* HOW IT WORKS */}
-                <section id="how-it-works" className="max-w-6xl mx-auto px-6 py-24 border-t">
-                    <Badge className="mb-4">How it works</Badge>
-                    <h2 className="text-4xl font-bold mb-4">From conversation to production in minutes</h2>
-                    <p className="text-lg text-slate-500 mb-16">Get a working first version fast — then improve it in tight loops.</p>
-                    <div className="grid md:grid-cols-3 gap-6 mb-12">
-                        {["Describe", "Refine", "Deploy"].map((s, i) => (
-                            <Card key={s} className="p-8">
-                                <Badge variant="outline" className="mb-6">Step 0{i+1}</Badge>
-                                <h4 className="text-xl font-bold mb-2">{s}</h4>
-                                <p className="text-sm text-slate-500 font-medium">Explain the app in plain English. Veloxity captures the design instantly.</p>
-                            </Card>
-                        ))}
-                    </div>
-                    <div className="bg-slate-900 rounded-[3rem] p-10 md:p-14 flex flex-col md:flex-row items-center justify-between gap-8 text-white">
-                        <div><h4 className="text-3xl font-bold mb-2">The promise</h4><p className="text-slate-400 font-medium">No consultants. No backlog. Just an app that fits your process.</p></div>
-                        <div className="flex gap-4"><Button className="bg-white text-slate-900 px-8 py-6 rounded-2xl">Start building</Button><Button variant="outline" className="text-white border-slate-700 px-8 py-6 rounded-2xl">Watch a demo</Button></div>
-                    </div>
-                </section>
-
-                {/* USE CASES */}
-                <section id="use-cases" className="max-w-6xl mx-auto px-6 py-24 border-t">
-                    <Badge className="mb-4">Use cases</Badge>
-                    <h2 className="text-4xl font-bold mb-4 text-slate-900">Built for real business problems</h2>
-                    <p className="text-lg text-slate-500 mb-16 max-w-2xl">If you can describe it, Veloxity can build it — and keep it maintainable as it evolves.</p>
-                    <div className="grid md:grid-cols-2 gap-6">
-                        {[
-                            { title: "Operations", icon: "boxes", desc: "Approvals, inventory, checklists, incident tracking.", tags: ["Workflows", "Dashboards"] },
-                            { title: "Finance", icon: "database", desc: "Budgeting, audits, spend visibility.", tags: ["Audit trails", "Controls"] },
-                            { title: "RevOps", icon: "users", desc: "Custom CRM flows, deal workflows, forecasting.", tags: ["Pipelines", "Integrations"] },
-                            { title: "HR", icon: "globe", desc: "Onboarding, compliance, policy workflows.", tags: ["Portals", "Permissions"] }
-                        ].map(c => (
-                            <Card key={c.title} className="p-8 flex gap-8">
-                                <div className="h-14 w-14 shrink-0 flex items-center justify-center border rounded-2xl bg-slate-50"><Icon name={c.icon} className="h-7 w-7" /></div>
-                                <div>
-                                    <h4 className="text-2xl font-bold mb-2">{c.title}</h4>
-                                    <p className="text-sm text-slate-500 font-medium mb-6">{c.desc}</p>
-                                    <div className="flex gap-2">{c.tags.map(t => <Badge key={t} variant="outline">{t}</Badge>)}</div>
-                                </div>
-                            </Card>
-                        ))}
-                    </div>
-                </section>
-
-                {/* PRICING */}
-                <section id="pricing" className="max-w-6xl mx-auto px-6 py-24 border-t">
-                    <Badge className="mb-4">Pricing</Badge>
-                    <h2 className="text-4xl font-bold mb-4">Priced for outcomes, not seats</h2>
-                    <p className="text-lg text-slate-500 mb-16">Veloxity replaces consulting projects — not spreadsheets.</p>
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {[
-                            { n: "Free", p: "$0", d: "Prove the magic", f: ["1 app", "Basic workflows"] },
-                            { n: "Pro", p: "$750/mo", d: "Standard business use", f: ["Multiple apps", "APIs"], h: true },
-                            { n: "Team", p: "$3,500/mo", d: "Department scale", f: ["Governance", "Audit trails"] },
-                            { n: "Enterprise", p: "Custom", d: "Org-wide rollout", f: ["SSO/SCIM", "Full SLA"] }
-                        ].map(t => (
-                            <Card key={t.n} className={cn("p-8 flex flex-col", t.h && "ring-2 ring-slate-900 shadow-xl")}>
-                                <div className="font-bold text-slate-900 mb-1">{t.n} {t.h && <Badge className="ml-2">Popular</Badge>}</div>
-                                <div className="text-3xl font-bold mt-6 mb-2">{t.p}</div>
-                                <p className="text-xs text-slate-500 font-bold uppercase tracking-tight mb-8 leading-relaxed">{t.d}</p>
-                                <ul className="space-y-4 mb-12 flex-1">
-                                    {t.f.map(f => <li key={f} className="text-sm font-medium text-slate-600 flex items-center gap-2"><Icon name="check" className="h-4 w-4 text-slate-900" /> {f}</li>)}
-                                </ul>
-                                <Button variant={t.h ? "default" : "outline"} className="w-full py-6 rounded-2xl">Choose {t.n}</Button>
-                            </Card>
-                        ))}
-                    </div>
-                </section>
-
-                {/* SECURITY */}
-                <section id="security" className="max-w-6xl mx-auto px-6 py-24 border-t">
-                    <Badge className="mb-4">Security</Badge>
-                    <h2 className="text-4xl font-bold mb-4">Enterprise-grade trust</h2>
-                    <p className="text-lg text-slate-500 mb-16">Permissions and controls are first-class — not add-ons.</p>
-                    <div className="grid md:grid-cols-3 gap-6 mb-12">
-                        {["Governed by default", "Secure runtime", "Safe automation"].map(s => (
-                            <Card key={s} className="p-10">
-                                <Icon name="shield" className="h-8 w-8 mb-8 text-slate-900" />
-                                <h4 className="font-bold text-xl mb-4">{s}</h4>
-                                <p className="text-sm text-slate-500 font-medium leading-relaxed">Role-based access, change tracking, and policy enforcement are standard.</p>
-                            </Card>
-                        ))}
-                    </div>
-                </section>
-
-                {/* FINAL CTA & FOOTER */}
-                <div className="max-w-6xl mx-auto px-6 pb-24">
-                    <div className="bg-slate-900 rounded-[3.5rem] p-16 lg:p-24 text-white grid lg:grid-cols-2 gap-16 items-center">
+                <div className="hero-gradient min-h-screen">
+                    <Nav />
+                    
+                    {/* HERO SECTION */}
+                    <div className="max-w-7xl mx-auto px-8 py-20 lg:py-32 grid lg:grid-cols-2 gap-16 items-start">
                         <div>
-                            <h2 className="text-5xl font-bold tracking-tight mb-8 leading-tight">Stop waiting on software. Build it.</h2>
-                            <p className="text-xl text-slate-400 mb-12 font-medium">Veloxity turns requirements into a production app in tight loops.</p>
-                            <div className="flex flex-wrap gap-4">
-                                <Button className="bg-white text-slate-900 px-10 py-7 rounded-2xl text-lg font-bold">Start building ➔</Button>
-                                <Button variant="outline" className="border-slate-700 text-white px-10 py-7 rounded-2xl text-lg font-bold">Talk to expert</Button>
+                            <div className="flex gap-2 mb-8">
+                                <Badge>Platform-as-a-Compiler</Badge>
+                                <Badge variant="outline">AI-first app building</Badge>
+                            </div>
+                            <h1 className="text-6xl font-bold leading-[1.1] tracking-tight text-slate-900">Describe the app you need. <span className="text-slate-400 font-medium">Veloxity builds it.</span></h1>
+                            <p className="text-xl text-slate-500 mt-8 mb-12 leading-relaxed max-w-xl">Veloxity turns plain English into secure, scalable business applications — UI, workflows, permissions, and APIs — deployed in minutes.</p>
+                            <div className="flex gap-4 mb-16">
+                                <Button className="px-8 py-6 text-lg rounded-2xl">Start building <Icon name="arrow-right" className="ml-2" /></Button>
+                                <Button variant="outline" className="px-8 py-6 text-lg rounded-2xl">Talk to an expert (15 min)</Button>
+                            </div>
+                            <div className="grid sm:grid-cols-2 gap-4">
+                                {[
+                                    { i: "zap", t: "Minutes, not months", d: "Get working versions instantly." },
+                                    { i: "shield", t: "Enterprise-ready", d: "Governance built-in from day one." },
+                                    { i: "workflow", t: "Real workflows", d: "Approvals and business logic." },
+                                    { i: "boxes", t: "Not a spreadsheet", d: "True apps with permissions." }
+                                ].map(f => (
+                                    <div key={f.t} className="p-5 border rounded-3xl bg-white/50 backdrop-blur-sm shadow-sm flex gap-4">
+                                        <div className="h-10 w-10 shrink-0 flex items-center justify-center border rounded-xl bg-white"><Icon name={f.i} /></div>
+                                        <div><div className="font-bold text-sm">{f.t}</div><p className="text-xs text-slate-400 mt-1">{f.d}</p></div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            {["Audit trails", "Versioning", "Environments", "Governed APIs"].map(x => (
-                                <div key={x} className="p-6 border border-slate-700 rounded-3xl bg-slate-800/50 flex items-center gap-4">
-                                    <Icon name="check" className="text-white h-5 w-5" /> <span className="text-[11px] font-bold uppercase tracking-widest">{x}</span>
-                                </div>
+
+                        {/* CHAT INTERFACE */}
+                        <Card className="p-8 shadow-2xl relative overflow-hidden">
+                            <div className="flex justify-between mb-8">
+                                <div><h3 className="font-bold text-slate-900">Build with Veloxity</h3><p className="text-xs text-slate-400">Chat → compiler → deployed app</p></div>
+                                <Badge>Live Demo</Badge>
+                            </div>
+                            <div className="h-80 overflow-y-auto bg-slate-50/50 rounded-3xl p-6 mb-6 flex flex-col gap-4 border border-slate-100">
+                                {chat.map((m, i) => (
+                                    <div key={i} className={`p-4 rounded-[1.5rem] text-sm max-w-[85%] leading-relaxed ${m.role === 'bot' ? 'bg-white border border-slate-100 text-slate-600 shadow-sm' : 'bg-slate-900 text-white ml-auto'}`}>
+                                        {m.text}
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="flex gap-3">
+                                <input className="flex-1 border rounded-2xl px-5 text-sm outline-none focus:ring-2 focus:ring-slate-900 transition-all" placeholder="I need a vendor tracker..." value={input} onChange={e => setInput(e.target.value)} onKeyPress={e => e.key === 'Enter' && send()} />
+                                <Button onClick={send} className="px-8">Send</Button>
+                            </div>
+                        </Card>
+                    </div>
+
+                    {/* FEATURES SECTION */}
+                    <section className="max-w-7xl mx-auto px-8 py-24 border-t border-slate-100">
+                        <h2 className="text-4xl font-bold mb-6">This is not another no-code tool</h2>
+                        <p className="text-lg text-slate-400 mb-16 max-w-2xl font-medium">Veloxity is an application compiler: conversational inputs become platform-native configuration and deploy into a secure runtime.</p>
+                        <div className="grid md:grid-cols-2 gap-4">
+                            {[
+                                { i: "terminal", t: "AI as your lead architect", d: "Veloxity designs complete applications — not code snippets." },
+                                { i: "building", t: "A real platform", d: "Apps run on a governed runtime: permissions, data, workflows." },
+                                { i: "gauge", t: "Built for scale", d: "High data limits and predictable growth paths." },
+                                { i: "lock", t: "Production controls", d: "Versioning, audit trails, and safe change management." }
+                            ].map(it => (
+                                <Card key={it.t} className="p-8 flex gap-6 items-start">
+                                    <div className="h-12 w-12 shrink-0 flex items-center justify-center border rounded-2xl bg-slate-50"><Icon name={it.i} /></div>
+                                    <div><h4 className="font-bold text-slate-900 mb-2">{it.t}</h4><p className="text-sm text-slate-400 leading-relaxed">{it.d}</p></div>
+                                </Card>
                             ))}
                         </div>
-                    </div>
-                </div>
+                    </section>
 
-                <footer className="border-t pt-24 pb-12 px-6">
-                    <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start gap-12 mb-20">
-                        <div className="max-w-xs">
-                            <div className="flex items-center gap-3 mb-6"><div className="h-10 w-10 border rounded-2xl flex items-center justify-center font-bold">V</div><div className="font-bold text-xl">Veloxity</div></div>
-                            <p className="text-sm text-slate-500 font-medium leading-relaxed">Build bespoke business applications from conversation — deployed on a governed platform.</p>
+                    {/* USE CASES */}
+                    <section id="use-cases" className="max-w-7xl mx-auto px-8 py-24 border-t border-slate-100">
+                        <Badge className="mb-4">Use cases</Badge>
+                        <h2 className="text-4xl font-bold mb-6">Built for real business problems</h2>
+                        <p className="text-lg text-slate-400 mb-16 max-w-2xl">If you can describe it, Veloxity can build it — and keep it maintainable as it evolves.</p>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            {[
+                                { t: "Operations", i: "boxes", d: "Approvals, inventory, incident tracking.", b: ["Workflows", "Dashboards"] },
+                                { t: "Finance", i: "database", d: "Budgeting, audits, spend visibility.", b: ["Audit trails", "Controls"] },
+                                { t: "RevOps", i: "users", d: "Custom CRM flows, deal workflows.", b: ["Pipelines", "Integrations"] },
+                                { t: "HR", i: "globe", d: "Onboarding, compliance tasks.", b: ["Portals", "Permissions"] }
+                            ].map(c => (
+                                <Card key={c.t} className="p-10 flex gap-8">
+                                    <div className="h-16 w-16 shrink-0 flex items-center justify-center border rounded-3xl bg-slate-50"><Icon name={c.i} className="h-8 w-8" /></div>
+                                    <div>
+                                        <h4 className="text-2xl font-bold mb-3">{c.t}</h4>
+                                        <p className="text-sm text-slate-400 mb-6 leading-relaxed">{c.d}</p>
+                                        <div className="flex gap-2">{c.b.map(tag => <Badge key={tag} variant="outline">{tag}</Badge>)}</div>
+                                    </div>
+                                </Card>
+                            ))}
                         </div>
-                        <div className="grid grid-cols-2 gap-16 text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-                            <div className="flex flex-col gap-6"><a href="#">How it works</a><a href="#">Pricing</a></div>
-                            <div className="flex flex-col gap-6"><a href="#">Security</a><a href="#">Contact</a></div>
+                    </section>
+
+                    {/* PRICING */}
+                    <section id="pricing" className="max-w-7xl mx-auto px-8 py-24 border-t border-slate-100">
+                        <Badge className="mb-4">Pricing</Badge>
+                        <h2 className="text-4xl font-bold mb-6 text-center">Priced for outcomes, not seats</h2>
+                        <div className="grid md:grid-cols-4 gap-4 mt-16">
+                            {[
+                                { n: "Free", p: "$0", f: ["1 app", "Basic workflows"] },
+                                { n: "Pro", p: "$750/mo", f: ["Multiple apps", "APIs"], h: true },
+                                { n: "Team", p: "$3,500/mo", f: ["Governance", "Audit trails"] },
+                                { n: "Enterprise", p: "Custom", f: ["SSO/SCIM", "Full SLA"] }
+                            ].map(t => (
+                                <Card key={t.n} className={`p-8 flex flex-col ${t.h ? 'ring-2 ring-slate-900 shadow-xl' : ''}`}>
+                                    <div className="font-bold text-slate-900 mb-1">{t.n} {t.h && <Badge className="ml-2">Popular</Badge>}</div>
+                                    <div className="text-3xl font-bold mt-6 mb-2">{t.p}</div>
+                                    <ul className="space-y-4 mb-10 flex-1 mt-8">
+                                        {t.f.map(f => <li key={f} className="text-sm text-slate-500 flex items-center gap-2"><Icon name="check" className="h-4 w-4 text-slate-900" /> {f}</li>)}
+                                    </ul>
+                                    <Button variant={t.h ? "default" : "outline"} className="w-full py-6 rounded-2xl">Choose {t.n}</Button>
+                                </Card>
+                            ))}
                         </div>
-                        <Card className="p-8 bg-slate-50/50 max-w-sm"><h5 className="font-bold text-sm mb-2">Sales-assist</h5><p className="text-xs text-slate-500 font-medium leading-relaxed mb-6">Book a 15-minute build session for validation.</p><Button variant="outline" className="w-full py-4 rounded-xl">Book 15 minutes</Button></Card>
-                    </div>
-                    <div className="max-w-6xl mx-auto flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest"><div>© 2026 Veloxity.</div><div className="flex gap-8"><a>Privacy</a><a>Terms</a></div></div>
-                </footer>
-            </div>
-        );
+                    </section>
+
+                    {/* SECURITY & CTA */}
+                    <section id="security" className="bg-slate-900 py-32 text-white">
+                        <div className="max-w-7xl mx-auto px-8">
+                            <h2 className="text-5xl font-bold mb-20 text-center">Stop waiting on software. <br/><span className="text-slate-500">Build it today.</span></h2>
+                            <div className="grid md:grid-cols-3 gap-12">
+                                {["Governed by default", "Secure runtime", "Safe automation"].map(s => (
+                                    <div key={s}>
+                                        <div className="h-12 w-12 border border-slate-700 rounded-2xl flex items-center justify-center mb-8"><Icon name="shield" /></div>
+                                        <h4 className="text-xl font-bold mb-4">{s}</h4>
+                                        <p className="text-slate-400 leading-relaxed text-sm font-medium">Role-based access, change tracking, and policy enforcement built-in.</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+
+                    <footer className="py-20 border-t border-slate-100 px-8 text-center text-xs text-slate-400 font-bold uppercase tracking-widest">
+                        <div className="font-bold text-slate-900 text-2xl mb-4 tracking-tighter italic">Veloxity</div>
+                        <p>© 2026 Veloxity. All rights reserved.</p>
+                    </footer>
+                </div>
+            );
+        };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);

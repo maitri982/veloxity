@@ -3,113 +3,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Veloxity Home</title>
+    <title>Veloxity — AI Application Compiler</title>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { background-color: #f8fafc; font-family: sans-serif; }
-        .hero-gradient { background: radial-gradient(circle at top left, #f1f5f9 0%, #ffffff 100%); }
+        body { background-color: #ffffff; color: #0f172a; }
+        .hero-bg { background: radial-gradient(circle at top left, #f8fafc 0%, #ffffff 100%); }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useMemo, useRef } = React;
 
-        // Simplified UI Components to replace the missing "shadcn" files
-        const Button = ({ children, variant = "primary", onClick }) => {
-            const styles = variant === "primary" 
-                ? "bg-black text-white hover:bg-gray-800" 
-                : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50";
-            return (
-                <button onClick={onClick} className={`px-6 py-2.5 rounded-xl font-medium transition-all active:scale-95 ${styles}`}>
-                    {children}
-                </button>
-            );
+        // --- UI COMPONENT SHIMS (Replacing the missing local files) ---
+        const Icon = ({ name, className = "h-5 w-5" }) => {
+            useEffect(() => { lucide.createIcons(); }, []);
+            return <i data-lucide={name} className={className}></i>;
         };
 
-        const Card = ({ children, title, subtitle }) => (
-            <div className="bg-white border border-gray-100 rounded-3xl shadow-sm p-6">
-                {title && <h3 className="font-bold text-gray-900">{title}</h3>}
-                {subtitle && <p className="text-sm text-gray-500 mb-4">{subtitle}</p>}
+        const Button = ({ children, variant = "default", className = "", ...props }) => {
+            const base = "inline-flex items-center justify-center px-4 py-2 text-sm font-medium transition-all rounded-xl active:scale-95 ";
+            const styles = variant === "outline" ? "border border-slate-200 bg-white hover:bg-slate-50 text-slate-700" : "bg-slate-900 text-white hover:bg-slate-800";
+            return <button className={base + styles + " " + className} {...props}>{children}</button>;
+        };
+
+        const Card = ({ children, className = "" }) => <div className={`bg-white border border-slate-200 rounded-3xl shadow-sm ${className}`}>{children}</div>;
+        const Badge = ({ children, variant = "secondary", className = "" }) => (
+            <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${variant === "outline" ? "border border-slate-200 text-slate-600" : "bg-slate-100 text-slate-800"} ${className}`}>
                 {children}
-            </div>
+            </span>
         );
 
-        function App() {
-            const [input, setInput] = useState("");
-            const [chat, setChat] = useState([{ role: 'bot', text: "Hi! I'm Veloxity AI. What can I build for you?" }]);
+        // --- RE-IMPLEMENTING YOUR ORIGINAL SECTIONS ---
 
-            const sendMessage = () => {
-                if (!input.trim()) return;
-                setChat([...chat, { role: 'user', text: input }, { role: 'bot', text: "Designing your app structure now..." }]);
-                setInput("");
-            };
-
+        function Nav() {
             return (
-                <div className="min-h-screen hero-gradient">
-                    {/* Navigation */}
-                    <nav className="flex justify-between items-center px-8 py-4 border-b bg-white/50 backdrop-blur-md sticky top-0">
-                        <div className="flex items-center gap-2 font-bold text-xl">
-                            <span>✨</span> Veloxity
-                        </div>
-                        <div className="hidden md:flex gap-6 text-sm text-gray-500">
-                            <a href="#">How it works</a>
-                            <a href="#">Security</a>
-                        </div>
-                        <Button variant="outline">Sign In</Button>
-                    </nav>
-
-                    {/* Hero */}
-                    <div className="max-w-6xl mx-auto px-8 py-20 grid md:grid-cols-2 gap-12 items-center">
-                        <div>
-                            <span className="bg-gray-100 text-gray-600 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Platform-as-a-Compiler</span>
-                            <h1 className="text-5xl font-bold mt-6 leading-tight text-gray-900">
-                                Describe the app you need. <span className="text-gray-400">Veloxity builds it.</span>
-                            </h1>
-                            <p className="mt-6 text-lg text-gray-600 leading-relaxed">
-                                Turn plain English into secure, scalable business applications — UI, workflows, and APIs — deployed in minutes.
-                            </p>
-                            <div className="mt-10 flex gap-4">
-                                <Button>Start Building ➔</Button>
-                                <Button variant="outline">View Demo</Button>
+                <div className="sticky top-0 z-50 w-full border-b bg-white/70 backdrop-blur-md px-6 py-3">
+                    <div className="mx-auto flex max-w-6xl items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-xl border bg-white shadow-sm">✨</div>
+                            <div className="leading-tight">
+                                <div className="text-sm font-semibold">Veloxity</div>
+                                <div className="text-xs text-slate-500">AI application compiler</div>
                             </div>
                         </div>
-
-                        {/* Chat Demo */}
-                        <Card title="Build with Veloxity" subtitle="Chat → compiler → deployed app">
-                            <div className="h-64 overflow-y-auto bg-gray-50 rounded-2xl p-4 mb-4 flex flex-col gap-3">
-                                {chat.map((msg, i) => (
-                                    <div key={i} className={`p-3 rounded-2xl text-sm max-w-[80%] ${msg.role === 'bot' ? 'bg-white border border-gray-100 shadow-sm' : 'bg-black text-white ml-auto'}`}>
-                                        {msg.text}
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="flex gap-2">
-                                <input 
-                                    className="flex-1 border border-gray-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-black outline-none"
-                                    placeholder="I need a vendor tracker..."
-                                    value={input}
-                                    onChange={(e) => setInput(e.target.value)}
-                                    onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                                />
-                                <Button onClick={sendMessage}>Send</Button>
-                            </div>
-                        </Card>
+                        <div className="hidden md:flex gap-6 text-sm text-slate-500">
+                            <a href="#how" className="hover:text-slate-900">How it works</a>
+                            <a href="#use-cases" className="hover:text-slate-900">Use cases</a>
+                            <a href="#pricing" className="hover:text-slate-900">Pricing</a>
+                        </div>
+                        <Button className="rounded-xl">Start building</Button>
                     </div>
+                </div>
+            );
+        }
 
-                    {/* Use Cases */}
-                    <div className="max-w-6xl mx-auto px-8 py-10 grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {['Operations', 'Finance', 'RevOps', 'HR'].map(item => (
-                            <div key={item} className="p-4 bg-white border border-gray-100 rounded-2xl text-center shadow-sm">
-                                <div className="font-bold text-gray-900">{item}</div>
-                                <div className="text-xs text-gray-400 mt-1 italic">Bespoke tools fast</div>
+        function HeroChat() {
+            const [input, setInput] = useState("");
+            const [msgs, setMsgs] = useState([{ role: "assistant", text: "Tell me what you need. I’ll ask a few questions, then deploy a first version." }]);
+            const handleSend = () => {
+                if(!input) return;
+                setMsgs([...msgs, {role: "user", text: input}, {role: "assistant", text: "Got it. I'm designing the workflows and data model now..."}]);
+                setInput("");
+            }
+            return (
+                <Card className="p-6">
+                    <div className="mb-4">
+                        <h3 className="font-bold">Build with Veloxity</h3>
+                        <p className="text-xs text-slate-500">Chat → compiler → deployed app</p>
+                    </div>
+                    <div className="h-64 overflow-y-auto bg-slate-50 rounded-2xl p-4 mb-4 flex flex-col gap-3">
+                        {msgs.map((m, i) => (
+                            <div key={i} className={`p-3 rounded-2xl text-sm max-w-[85%] ${m.role === 'assistant' ? 'bg-white border border-slate-100' : 'bg-slate-900 text-white ml-auto'}`}>
+                                {m.text}
                             </div>
                         ))}
                     </div>
+                    <div className="flex gap-2">
+                        <input className="flex-1 border rounded-xl px-3 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400" placeholder="I need a CRM..." value={input} onChange={e => setInput(e.target.value)} />
+                        <Button onClick={handleSend}>Send</Button>
+                    </div>
+                </Card>
+            );
+        }
+
+        function Hero() {
+            return (
+                <section className="mx-auto max-w-6xl px-6 py-20 grid md:grid-cols-2 gap-12 items-start">
+                    <div>
+                        <div className="flex gap-2 mb-6">
+                            <Badge>Platform-as-a-Compiler</Badge>
+                            <Badge variant="outline">AI-first</Badge>
+                        </div>
+                        <h1 className="text-5xl font-bold leading-tight mb-6">Describe the app you need. Veloxity builds it.</h1>
+                        <p className="text-lg text-slate-600 mb-8">Veloxity turns plain English into secure, scalable business applications — UI, workflows, and APIs — deployed in minutes.</p>
+                        <div className="flex gap-4 mb-10"><Button className="px-8 py-6 text-lg">Start building ➔</Button></div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="p-4 border rounded-2xl bg-slate-50/50">
+                                <div className="font-bold text-sm mb-1">⚡ Minutes, not months</div>
+                                <p className="text-xs text-slate-500">Get working versions instantly.</p>
+                            </div>
+                            <div className="p-4 border rounded-2xl bg-slate-50/50">
+                                <div className="font-bold text-sm mb-1">🛡️ Enterprise-ready</div>
+                                <p className="text-xs text-slate-500">Governance from day one.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <HeroChat />
+                </section>
+            );
+        }
+
+        function UseCases() {
+            const cases = [
+                { title: "Operations", desc: "Approvals, inventory, incident tracking.", tags: ["Workflows", "Dashboards"] },
+                { title: "Finance", desc: "Budgeting, audits, spend visibility.", tags: ["Audit trails", "APIs"] },
+                { title: "RevOps", desc: "Custom CRM flows, deal workflows.", tags: ["Pipelines", "Integrations"] },
+                { title: "HR", desc: "Onboarding, compliance tasks.", tags: ["Portals", "Permissions"] }
+            ];
+            return (
+                <section id="use-cases" className="mx-auto max-w-6xl px-6 py-20 border-t">
+                    <h2 className="text-3xl font-bold mb-10">Built for real business problems</h2>
+                    <div className="grid md:grid-cols-2 gap-6">
+                        {cases.map(c => (
+                            <Card key={c.title} className="p-6">
+                                <div className="font-bold text-lg mb-2">{c.title}</div>
+                                <p className="text-slate-600 text-sm mb-4">{c.desc}</p>
+                                <div className="flex gap-2">{c.tags.map(t => <Badge key={t} variant="outline">{t}</Badge>)}</div>
+                            </Card>
+                        ))}
+                    </div>
+                </section>
+            );
+        }
+
+        function Pricing() {
+            const tiers = [
+                { name: "Free", price: "$0", features: ["1 app", "Basic workflows"] },
+                { name: "Pro", price: "$750/mo", features: ["Multiple apps", "Integrations"], highlight: true },
+                { name: "Team", price: "$3,500/mo", features: ["Department scale", "Audit trails"] },
+                { name: "Enterprise", price: "Custom", features: ["SSO/SCIM", "Full SLA"] }
+            ];
+            return (
+                <section id="pricing" className="mx-auto max-w-6xl px-6 py-20 border-t">
+                    <h2 className="text-3xl font-bold mb-10 text-center">Priced for outcomes</h2>
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {tiers.map(t => (
+                            <Card key={t.name} className={`p-6 ${t.highlight ? 'ring-2 ring-slate-900' : ''}`}>
+                                <div className="text-sm font-bold mb-1">{t.name}</div>
+                                <div className="text-2xl font-bold mb-4">{t.price}</div>
+                                <ul className="space-y-2 mb-6">
+                                    {t.features.map(f => <li key={f} className="text-xs text-slate-500">✓ {f}</li>)}
+                                </ul>
+                                <Button className="w-full" variant={t.highlight ? 'default' : 'outline'}>Choose {t.name}</Button>
+                            </Card>
+                        ))}
+                    </div>
+                </section>
+            );
+        }
+
+        function Footer() {
+            return (
+                <footer className="border-t py-12 px-6 bg-slate-50 mt-20 text-center">
+                    <div className="font-bold mb-2">Veloxity</div>
+                    <p className="text-sm text-slate-500 mb-6">Stop waiting on software. Build it.</p>
+                    <div className="text-xs text-slate-400">© 2026 Veloxity. All rights reserved.</div>
+                </footer>
+            );
+        }
+
+        function App() {
+            return (
+                <div className="hero-bg">
+                    <Nav />
+                    <Hero />
+                    <UseCases />
+                    <Pricing />
+                    <Footer />
                 </div>
             );
         }
